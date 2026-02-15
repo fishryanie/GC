@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="GC overview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#0a0a0a"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#0ea5e9"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+
+  <rect x="40" y="40" width="1520" height="120" rx="24" fill="#111827" stroke="#1f2937"/>
+  <circle cx="110" cy="100" r="34" fill="#16a34a"/>
+  <text x="110" y="112" fill="#ffffff" font-size="30" font-family="Arial, sans-serif" text-anchor="middle" font-weight="700">GC</text>
+  <text x="170" y="92" fill="#ffffff" font-size="44" font-family="Arial, sans-serif" font-weight="700">GC Admin Platform</text>
+  <text x="170" y="128" fill="#9ca3af" font-size="24" font-family="Arial, sans-serif">Manage products, pricing, orders, users and seller approvals</text>
+
+  <rect x="40" y="190" width="300" height="670" rx="20" fill="#0f172a" stroke="#1f2937"/>
+  <text x="76" y="250" fill="#e5e7eb" font-size="30" font-family="Arial, sans-serif" font-weight="700">Modules</text>
+
+  <g font-family="Arial, sans-serif" font-size="24" fill="#d1d5db">
+    <text x="76" y="310">Dashboard</text>
+    <text x="76" y="360">Products</text>
+    <text x="76" y="410">Price Profiles</text>
+    <text x="76" y="460">New Order</text>
+    <text x="76" y="510">Orders</text>
+    <text x="76" y="560">Users (Customers/Sellers)</text>
+  </g>
+
+  <rect x="380" y="190" width="560" height="220" rx="20" fill="#111827" stroke="#1f2937"/>
+  <text x="420" y="245" fill="#ffffff" font-size="30" font-family="Arial, sans-serif" font-weight="700">Pricing Model</text>
+  <text x="420" y="285" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">- Cost profiles: admin only, single active</text>
+  <text x="420" y="320" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">- Sale profiles: system + seller owned</text>
+  <text x="420" y="355" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">- Order stores snapshots to protect history</text>
+
+  <rect x="980" y="190" width="580" height="220" rx="20" fill="#111827" stroke="#1f2937"/>
+  <text x="1020" y="245" fill="#ffffff" font-size="30" font-family="Arial, sans-serif" font-weight="700">Order Approval Flow</text>
+  <text x="1020" y="285" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">1) Seller creates order</text>
+  <text x="1020" y="320" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">2) Status = PENDING_APPROVAL</text>
+  <text x="1020" y="355" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">3) Admin approve/reject (with or without discount)</text>
+
+  <rect x="380" y="450" width="560" height="190" rx="20" fill="#111827" stroke="#1f2937"/>
+  <text x="420" y="505" fill="#ffffff" font-size="30" font-family="Arial, sans-serif" font-weight="700">Roles</text>
+  <text x="420" y="545" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">- Admin: full access, manage sellers</text>
+  <text x="420" y="580" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">- Seller: create orders, own sale profiles</text>
+  <text x="420" y="615" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">- Disabled seller cannot login</text>
+
+  <rect x="980" y="450" width="580" height="190" rx="20" fill="#111827" stroke="#1f2937"/>
+  <text x="1020" y="505" fill="#ffffff" font-size="30" font-family="Arial, sans-serif" font-weight="700">Tech Stack</text>
+  <text x="1020" y="545" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">Next.js 16, React 19, TypeScript</text>
+  <text x="1020" y="580" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">Tailwind CSS 4, Ant Design 6</text>
+  <text x="1020" y="615" fill="#9ca3af" font-size="22" font-family="Arial, sans-serif">MongoDB + Mongoose</text>
+
+  <rect x="380" y="680" width="1180" height="180" rx="20" fill="url(#hero)" opacity="0.22"/>
+  <text x="420" y="745" fill="#dcfce7" font-size="30" font-family="Arial, sans-serif" font-weight="700">Designed for operations: fast overview, strict pricing control, safe order history.</text>
+  <text x="420" y="790" fill="#e5e7eb" font-size="24" font-family="Arial, sans-serif">Database constraints and server actions keep business rules on backend instead of frontend.</text>
+</svg>

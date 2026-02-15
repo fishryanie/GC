@@ -1,0 +1,26 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "Chưa",
+    "giá",
+    "vốn",
+    "bán",
+    "hoạt",
+    "động",
+    "Tạo",
+    "mới",
+    "dừng",
+    "tạm",
+    "ghi",
+    "chú",
+    "phẩm",
+    "sản",
+    "profile",
+    "antd",
+    "Flashcard",
+    "hero-kicker",
+    "kicker"
+  ],
+  "ignorePaths": ["node_modules", ".next", "dist", "package-lock.json"]
+}
