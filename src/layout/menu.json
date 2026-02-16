@@ -1,0 +1,61 @@
+{
+  "desktop": [
+    {
+      "href": "/dashboard",
+      "labelKey": "dashboard",
+      "icon": "LayoutDashboard"
+    },
+    {
+      "href": "/products",
+      "labelKey": "products",
+      "icon": "Package"
+    },
+    {
+      "href": "/price-profiles",
+      "labelKey": "priceProfiles",
+      "icon": "BarChart3"
+    },
+    {
+      "href": "/orders/new",
+      "labelKey": "newOrder",
+      "icon": "ShoppingCart"
+    },
+    {
+      "href": "/orders",
+      "labelKey": "orders",
+      "icon": "FileText"
+    },
+    {
+      "href": "/customers",
+      "labelKey": "customers",
+      "icon": "Users"
+    }
+  ],
+  "mobile": [
+    {
+      "href": "/dashboard",
+      "labelKey": "home",
+      "icon": "LayoutDashboard"
+    },
+    {
+      "href": "/products",
+      "labelKey": "products",
+      "icon": "Package"
+    },
+    {
+      "href": "/orders/new",
+      "labelKey": "newOrder",
+      "icon": "ShoppingCart"
+    },
+    {
+      "href": "/orders",
+      "labelKey": "orders",
+      "icon": "Calendar"
+    },
+    {
+      "href": "/customers",
+      "labelKey": "customers",
+      "icon": "Users"
+    }
+  ]
+}

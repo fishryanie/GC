@@ -1,17 +1,14 @@
-import type { ReactNode } from "react";
-import { AdminShell } from "@/app/(admin)/components/admin-shell";
-import { requireAuthSession } from "@/lib/auth";
-import { getDatabaseHealth } from "@/lib/database-health";
+import { AdminLayoutShell } from 'layout';
+import { requireAuthSession } from 'lib/auth';
+import { getDatabaseHealth } from 'lib/database-health';
+import type { ReactNode } from 'react';
 
-export default async function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayoutContainer({ children }: { children: ReactNode }) {
   const [dbHealth, session] = await Promise.all([getDatabaseHealth(), requireAuthSession()]);
 
   return (
-    <AdminShell
-      dbError={!dbHealth.ok ? dbHealth.message : undefined}
-      currentSeller={session.seller}
-    >
+    <AdminLayoutShell dbError={!dbHealth.ok ? dbHealth.message : undefined} currentSeller={session.seller}>
       {children}
-    </AdminShell>
+    </AdminLayoutShell>
   );
 }

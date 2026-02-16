@@ -6,6 +6,11 @@ Nền tảng admin quản lý bán giò chả theo mô hình `price profile` (gi
 
 ![GC Overview](./public/readme-overview.svg)
 
+## Tài liệu vận hành
+
+- Onboarding & SOP cho nhân sự mới: [`docs/ONBOARDING_PLAYBOOK.vi.md`](./docs/ONBOARDING_PLAYBOOK.vi.md)
+- Technical handover cho dev: [`docs/TECHNICAL_HANDOVER.vi.md`](./docs/TECHNICAL_HANDOVER.vi.md)
+
 ## 1. Mục tiêu dự án
 
 - Quản lý sản phẩm theo kg.

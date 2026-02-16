@@ -1,125 +1,70 @@
-import { FlashAlert } from "@/app/components/flash-alert";
-import { LoginForm } from "@/app/login/components/login-form";
-import { ensureDefaultAdminAccount, getAuthSession } from "@/lib/auth";
-import { getFlashMessage } from "@/lib/flash";
-import { resolveSearchParams } from "@/lib/search-params";
-import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { ensureDefaultAdminAccount, getAuthSession } from 'lib/auth';
+import { resolveSearchParams } from 'lib/search-params';
+import { getTranslations } from 'next-intl/server';
+import { redirect } from 'next/navigation';
+import { LoginForm } from './components/login-form';
 
 function getSearchValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
-    return value[0] ?? "";
+    return value[0] ?? '';
   }
 
-  return value ?? "";
+  return value ?? '';
 }
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?:
-    | Record<string, string | string[] | undefined>
-    | Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined>>;
 }) {
   await ensureDefaultAdminAccount();
   const session = await getAuthSession();
 
   if (session) {
-    redirect("/dashboard");
+    redirect('/dashboard');
   }
 
   const params = await resolveSearchParams(searchParams);
-  const flash = getFlashMessage(params);
   const returnTo = getSearchValue(params.returnTo);
-  const normalizedReturnTo =
-    returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/dashboard";
-  const t = await getTranslations("loginPage");
+  const normalizedReturnTo = returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/dashboard';
+  const t = await getTranslations('loginPage');
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex min-h-screen">
-        <aside className="relative hidden w-1/2 overflow-hidden bg-[linear-gradient(145deg,#14532d,#166534,#0f172a)] p-12 lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute -left-20 top-10 h-80 w-80 rounded-full border border-white/50" />
-            <div className="absolute bottom-6 right-4 h-96 w-96 rounded-full border border-white/30" />
-            <div className="absolute left-1/3 top-1/2 h-52 w-52 rounded-full border border-white/30" />
-          </div>
+    <div className='relative h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_16%_16%,rgba(34,197,94,0.32),transparent_45%),radial-gradient(circle_at_92%_24%,rgba(16,185,129,0.22),transparent_48%),linear-gradient(160deg,#052e1b,#0f172a)]'>
+      <div className='pointer-events-none absolute inset-0 opacity-75'>
+        <div className='absolute -left-14 top-8 h-48 w-48 rounded-full border border-emerald-100/20' />
+        <div className='absolute -right-14 bottom-8 h-56 w-56 rounded-full border border-emerald-100/15' />
+      </div>
 
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
-              <span className="text-sm font-bold text-white">GC</span>
-            </div>
-            <span className="text-2xl font-bold text-white">GC</span>
-          </div>
-
-          <div className="relative z-10">
-            <h1 className="mb-4 text-4xl font-bold leading-tight text-white">{t("heroTitle")}</h1>
-            <p className="max-w-md text-lg text-white/80">{t("heroSubtitle")}</p>
-          </div>
-
-          <div className="relative z-10 flex gap-12">
-            <div>
-              <p className="text-3xl font-bold text-white">11+</p>
-              <p className="text-sm text-white/75">{t("heroStatProducts")}</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-white">24/7</p>
-              <p className="text-sm text-white/75">{t("heroStatOps")}</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-white">100%</p>
-              <p className="text-sm text-white/75">{t("heroStatTracking")}</p>
-            </div>
-          </div>
-        </aside>
-
-        <main className="relative flex flex-1 items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_18%_20%,rgba(34,197,94,0.3),transparent_42%),radial-gradient(circle_at_85%_15%,rgba(250,204,21,0.22),transparent_45%),linear-gradient(150deg,#111827,#1f2937,#0f172a)] p-8">
-          <div className="pointer-events-none absolute inset-0 opacity-50">
-            <div className="absolute -right-24 top-8 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-            <div className="absolute bottom-8 left-8 h-64 w-64 rounded-full bg-amber-300/20 blur-3xl" />
-          </div>
-
-          <div className="relative z-10 w-full max-w-[460px] rounded-3xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.12),rgba(17,24,39,0.84)_35%,rgba(2,6,23,0.9)_100%)] p-7 shadow-[0_30px_80px_rgba(2,6,23,0.55)] backdrop-blur">
-            <div className="mb-8 lg:hidden">
-              <div className="mb-3 flex items-center justify-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500 shadow-[0_8px_20px_rgba(34,197,94,0.35)]">
-                  <span className="text-sm font-bold text-white">GC</span>
-                </div>
-                <span className="text-2xl font-bold text-primary-500">GC</span>
+      <main className='relative z-10 mx-auto flex h-full w-full max-w-3xl items-center justify-center px-[clamp(12px,4vw,24px)] py-[clamp(12px,3dvh,24px)]'>
+        <section className='w-full max-w-[460px] overflow-hidden rounded-[28px] border border-emerald-200/20 bg-background-secondary/92 shadow-[0_24px_64px_rgba(2,6,23,0.56)] backdrop-blur'>
+          <header className='border-b border-emerald-200/15 bg-[linear-gradient(145deg,rgba(34,197,94,0.24),rgba(15,23,42,0.32)_55%,rgba(10,10,10,0.45))] px-[clamp(16px,4.5vw,28px)] py-[clamp(14px,2.8vh,22px)]'>
+            <div className='mb-3 flex items-center gap-2.5'>
+              <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500 shadow-[0_8px_20px_rgba(34,197,94,0.35)]'>
+                <span className='text-xs font-bold text-white'>GC</span>
               </div>
+              <span className='text-[clamp(1.2rem,4.8vw,1.6rem)] font-bold text-foreground'>GC</span>
             </div>
 
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-foreground">{t("title")}</h2>
-              <p className="mt-2 text-foreground-secondary">{t("subtitle")}</p>
-            </div>
+            <h1 className='mb-1.5 text-[clamp(1.3rem,6vw,1.8rem)] font-bold leading-tight text-foreground'>{t('heroTitle')}</h1>
+            <p className='m-0 text-[clamp(0.8rem,3.2vw,0.96rem)] leading-relaxed text-foreground-secondary'>{t('heroSubtitle')}</p>
+          </header>
 
-            {flash ? <FlashAlert type={flash.type} message={flash.message} /> : null}
+          <div className='space-y-4 px-[clamp(16px,4.5vw,28px)] py-[clamp(14px,2.8vh,22px)]'>
+            <div>
+              <h2 className='text-[clamp(1.15rem,5vw,1.45rem)] font-bold text-foreground'>{t('title')}</h2>
+              <p className='mt-1.5 text-[clamp(0.78rem,3.1vw,0.92rem)] text-foreground-secondary'>{t('subtitle')}</p>
+            </div>
 
             <LoginForm returnTo={normalizedReturnTo} />
 
-            <div className="mt-8 grid grid-cols-3 gap-2">
-              <div className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2 py-2 text-center">
-                <p className="m-0 text-base font-bold text-emerald-200">11+</p>
-                <p className="m-0 text-[11px] text-emerald-100/90">{t("heroStatProducts")}</p>
-              </div>
-              <div className="rounded-lg border border-sky-400/30 bg-sky-500/10 px-2 py-2 text-center">
-                <p className="m-0 text-base font-bold text-sky-200">24/7</p>
-                <p className="m-0 text-[11px] text-sky-100/90">{t("heroStatOps")}</p>
-              </div>
-              <div className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-2 py-2 text-center">
-                <p className="m-0 text-base font-bold text-amber-200">100%</p>
-                <p className="m-0 text-[11px] text-amber-100/90">{t("heroStatTracking")}</p>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-lg border border-white/15 bg-black/20 p-4">
-              <p className="mb-2 text-xs text-foreground-muted">{t("demoTitle")}</p>
-              <p className="m-0 text-sm text-foreground">{t("demoAdmin")}</p>
+            <div className='rounded-lg border border-emerald-300/20 bg-emerald-500/12 px-3 py-2.5'>
+              <p className='mb-2 text-xs text-foreground-muted'>{t('demoTitle')}</p>
+              <p className='m-0 text-xs text-foreground'>{t('demoAdmin')}</p>
             </div>
           </div>
-        </main>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

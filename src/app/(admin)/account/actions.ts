@@ -1,19 +1,10 @@
-"use server";
+'use server';
 
-import {
-  clearAuthSession,
-  hashPassword,
-  requireAuthSession,
-  verifyPassword,
-} from "@/lib/auth";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Seller } from "@/models/seller";
-import { SellerSession } from "@/models/seller-session";
-import {
-  getActionMessages,
-  handleActionError,
-  redirectWithMessage,
-} from "@/lib/action-helpers";
+import { getActionMessages, handleActionError, redirectWithMessage } from 'lib/action-helpers';
+import { clearAuthSession, hashPassword, requireAuthSession, verifyPassword } from 'lib/auth';
+import { connectToDatabase } from 'lib/mongodb';
+import { Seller } from 'models/seller';
+import { SellerSession } from 'models/seller-session';
 
 export async function changePasswordAction(formData: FormData) {
   try {
@@ -21,9 +12,9 @@ export async function changePasswordAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const currentPassword = String(formData.get("currentPassword") || "");
-    const newPassword = String(formData.get("newPassword") || "");
-    const confirmPassword = String(formData.get("confirmPassword") || "");
+    const currentPassword = String(formData.get('currentPassword') || '');
+    const newPassword = String(formData.get('newPassword') || '');
+    const confirmPassword = String(formData.get('confirmPassword') || '');
 
     if (!currentPassword || !newPassword || !confirmPassword) {
       throw new Error(m.passwordFieldsRequired);
@@ -37,7 +28,7 @@ export async function changePasswordAction(formData: FormData) {
       throw new Error(m.passwordTooShort);
     }
 
-    const seller = await Seller.findById(session.seller.id).select("+passwordHash");
+    const seller = await Seller.findById(session.seller.id).select('+passwordHash');
     if (!seller) {
       throw new Error(m.accountNotFound);
     }
@@ -60,8 +51,8 @@ export async function changePasswordAction(formData: FormData) {
     await SellerSession.deleteMany({ sellerId: seller._id });
     await clearAuthSession();
 
-    redirectWithMessage("/login", "success", m.passwordChanged);
+    redirectWithMessage('/login', 'success', m.passwordChanged);
   } catch (error) {
-    await handleActionError("/account", error);
+    await handleActionError('/account', error);
   }
 }

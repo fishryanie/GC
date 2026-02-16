@@ -1,22 +1,13 @@
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
-import { Types } from "mongoose";
-import {
-  hashPassword,
-  normalizeEmail,
-  requireAdminSession,
-  requireAuthSession,
-} from "@/lib/auth";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Customer } from "@/models/customer";
-import { Seller } from "@/models/seller";
-import { SellerSession } from "@/models/seller-session";
-import {
-  getActionMessages,
-  handleActionError,
-  redirectWithMessage,
-} from "@/lib/action-helpers";
+import { getActionMessages, handleActionError, redirectWithMessage } from 'lib/action-helpers';
+import { hashPassword, normalizeEmail, requireAdminSession, requireAuthSession } from 'lib/auth';
+import { connectToDatabase } from 'lib/mongodb';
+import { Customer } from 'models/customer';
+import { Seller } from 'models/seller';
+import { SellerSession } from 'models/seller-session';
+import { Types } from 'mongoose';
+import { revalidatePath } from 'next/cache';
 
 export async function upsertCustomerAction(formData: FormData) {
   try {
@@ -24,11 +15,13 @@ export async function upsertCustomerAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const id = String(formData.get("id") || "").trim();
-    const name = String(formData.get("name") || "").trim();
-    const phone = String(formData.get("phone") || "").trim();
-    const email = normalizeEmail(String(formData.get("email") || ""));
-    const notes = String(formData.get("notes") || "").trim().slice(0, 500);
+    const id = String(formData.get('id') || '').trim();
+    const name = String(formData.get('name') || '').trim();
+    const phone = String(formData.get('phone') || '').trim();
+    const email = normalizeEmail(String(formData.get('email') || ''));
+    const notes = String(formData.get('notes') || '')
+      .trim()
+      .slice(0, 500);
 
     if (!name) {
       throw new Error(m.customerNameRequired);
@@ -57,9 +50,9 @@ export async function upsertCustomerAction(formData: FormData) {
 
       await Customer.findByIdAndUpdate(id, { $set: payload }, { runValidators: true });
 
-      revalidatePath("/customers");
-      revalidatePath("/orders/new");
-      redirectWithMessage("/customers?tab=customers", "success", m.customerUpdated);
+      revalidatePath('/customers');
+      revalidatePath('/orders/new');
+      redirectWithMessage('/customers?tab=customers', 'success', m.customerUpdated);
     }
 
     await Customer.create({
@@ -67,12 +60,12 @@ export async function upsertCustomerAction(formData: FormData) {
       isActive: true,
     });
 
-    revalidatePath("/customers");
-    revalidatePath("/orders/new");
+    revalidatePath('/customers');
+    revalidatePath('/orders/new');
 
-    redirectWithMessage("/customers?tab=customers", "success", m.customerCreated);
+    redirectWithMessage('/customers?tab=customers', 'success', m.customerCreated);
   } catch (error) {
-    await handleActionError("/customers?tab=customers", error);
+    await handleActionError('/customers?tab=customers', error);
   }
 }
 
@@ -82,7 +75,7 @@ export async function toggleCustomerStatusAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const customerId = String(formData.get("customerId") || "").trim();
+    const customerId = String(formData.get('customerId') || '').trim();
 
     if (!Types.ObjectId.isValid(customerId)) {
       throw new Error(m.invalidCustomerId);
@@ -97,12 +90,12 @@ export async function toggleCustomerStatusAction(formData: FormData) {
     customer.isActive = !customer.isActive;
     await customer.save();
 
-    revalidatePath("/customers");
-    revalidatePath("/orders/new");
+    revalidatePath('/customers');
+    revalidatePath('/orders/new');
 
-    redirectWithMessage("/customers?tab=customers", "success", m.customerStatusUpdated);
+    redirectWithMessage('/customers?tab=customers', 'success', m.customerStatusUpdated);
   } catch (error) {
-    await handleActionError("/customers?tab=customers", error);
+    await handleActionError('/customers?tab=customers', error);
   }
 }
 
@@ -112,11 +105,11 @@ export async function upsertSellerAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const id = String(formData.get("id") || "").trim();
-    const name = String(formData.get("name") || "").trim();
-    const email = normalizeEmail(String(formData.get("email") || ""));
-    const password = String(formData.get("password") || "");
-    const role = String(formData.get("role") || "SELLER").trim();
+    const id = String(formData.get('id') || '').trim();
+    const name = String(formData.get('name') || '').trim();
+    const email = normalizeEmail(String(formData.get('email') || ''));
+    const password = String(formData.get('password') || '');
+    const role = String(formData.get('role') || 'SELLER').trim();
 
     if (!name) {
       throw new Error(m.sellerNameRequired);
@@ -126,7 +119,7 @@ export async function upsertSellerAction(formData: FormData) {
       throw new Error(m.sellerEmailRequired);
     }
 
-    if (role !== "SELLER" && role !== "ADMIN") {
+    if (role !== 'SELLER' && role !== 'ADMIN') {
       throw new Error(m.invalidSellerRole);
     }
 
@@ -160,8 +153,8 @@ export async function upsertSellerAction(formData: FormData) {
 
       await Seller.findByIdAndUpdate(id, { $set: updatePayload }, { runValidators: true });
 
-      revalidatePath("/customers");
-      redirectWithMessage("/customers?tab=sellers", "success", m.sellerUpdated);
+      revalidatePath('/customers');
+      redirectWithMessage('/customers?tab=sellers', 'success', m.sellerUpdated);
     }
 
     if (!password) {
@@ -184,11 +177,11 @@ export async function upsertSellerAction(formData: FormData) {
       createdBySellerId: session.seller.id,
     });
 
-    revalidatePath("/customers");
+    revalidatePath('/customers');
 
-    redirectWithMessage("/customers?tab=sellers", "success", m.sellerCreated);
+    redirectWithMessage('/customers?tab=sellers', 'success', m.sellerCreated);
   } catch (error) {
-    await handleActionError("/customers?tab=sellers", error);
+    await handleActionError('/customers?tab=sellers', error);
   }
 }
 
@@ -198,7 +191,7 @@ export async function toggleSellerStatusAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const sellerId = String(formData.get("sellerId") || "").trim();
+    const sellerId = String(formData.get('sellerId') || '').trim();
 
     if (!Types.ObjectId.isValid(sellerId)) {
       throw new Error(m.invalidSellerId);
@@ -221,11 +214,11 @@ export async function toggleSellerStatusAction(formData: FormData) {
       await SellerSession.deleteMany({ sellerId: seller._id });
     }
 
-    revalidatePath("/customers");
+    revalidatePath('/customers');
 
-    redirectWithMessage("/customers?tab=sellers", "success", m.sellerStatusUpdated);
+    redirectWithMessage('/customers?tab=sellers', 'success', m.sellerStatusUpdated);
   } catch (error) {
-    await handleActionError("/customers?tab=sellers", error);
+    await handleActionError('/customers?tab=sellers', error);
   }
 }
 
@@ -235,8 +228,8 @@ export async function resetSellerPasswordAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const sellerId = String(formData.get("sellerId") || "").trim();
-    const newPassword = String(formData.get("newPassword") || "");
+    const sellerId = String(formData.get('sellerId') || '').trim();
+    const newPassword = String(formData.get('newPassword') || '');
 
     if (!Types.ObjectId.isValid(sellerId)) {
       throw new Error(m.invalidSellerId);
@@ -259,7 +252,7 @@ export async function resetSellerPasswordAction(formData: FormData) {
       throw new Error(m.sellerNotFound);
     }
 
-    if (seller.role !== "SELLER") {
+    if (seller.role !== 'SELLER') {
       throw new Error(m.onlySellerResetAllowed);
     }
 
@@ -273,10 +266,10 @@ export async function resetSellerPasswordAction(formData: FormData) {
 
     await SellerSession.deleteMany({ sellerId });
 
-    revalidatePath("/customers");
+    revalidatePath('/customers');
 
-    redirectWithMessage("/customers?tab=sellers", "success", m.sellerPasswordReset);
+    redirectWithMessage('/customers?tab=sellers', 'success', m.sellerPasswordReset);
   } catch (error) {
-    await handleActionError("/customers?tab=sellers", error);
+    await handleActionError('/customers?tab=sellers', error);
   }
 }

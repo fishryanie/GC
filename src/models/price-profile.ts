@@ -1,11 +1,11 @@
-import { model, models, Schema, type InferSchemaType, type Model } from "mongoose";
-import { PRICE_PROFILE_TYPES } from "@/lib/constants";
+import { PRICE_PROFILE_TYPES } from 'lib/constants';
+import { model, models, Schema, type InferSchemaType, type Model } from 'mongoose';
 
 const profileItemSchema = new Schema(
   {
     productId: {
       type: Schema.Types.ObjectId,
-      ref: "Product",
+      ref: 'Product',
       required: true,
     },
     productName: {
@@ -37,7 +37,7 @@ const priceProfileSchema = new Schema(
     },
     sellerId: {
       type: Schema.Types.ObjectId,
-      ref: "Seller",
+      ref: 'Seller',
     },
     sellerName: {
       type: String,
@@ -62,7 +62,7 @@ const priceProfileSchema = new Schema(
       default: [],
       validate: {
         validator: (value: unknown[]) => Array.isArray(value) && value.length > 0,
-        message: "Price profile must include at least one item.",
+        message: 'Price profile must include at least one item.',
       },
     },
   },
@@ -77,5 +77,4 @@ priceProfileSchema.index({ type: 1, sellerId: 1, effectiveFrom: -1, createdAt: -
 export type PriceProfileDocument = InferSchemaType<typeof priceProfileSchema>;
 
 export const PriceProfile: Model<PriceProfileDocument> =
-  (models.PriceProfile as Model<PriceProfileDocument>) ||
-  model<PriceProfileDocument>("PriceProfile", priceProfileSchema);
+  (models.PriceProfile as Model<PriceProfileDocument>) || model<PriceProfileDocument>('PriceProfile', priceProfileSchema);

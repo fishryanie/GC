@@ -1,44 +1,35 @@
-import { FlashAlert } from "@/app/components/flash-alert";
-import { ProductsGrid } from "@/app/(admin)/products/components/products-grid";
-import {
-  deleteProductAction,
-  toggleProductStatusAction,
-  upsertProductAction,
-} from "@/app/(admin)/products/actions";
-import { requireAuthSession } from "@/lib/auth";
-import { getDefaultSalePrices, getProductStats, listProducts } from "@/lib/data";
-import { getFlashMessage } from "@/lib/flash";
-import { resolveSearchParams } from "@/lib/search-params";
+import { requireAuthSession } from 'lib/auth';
+import { getDefaultSalePrices, getProductStats, listProducts } from 'lib/data';
+import { resolveSearchParams } from 'lib/search-params';
+import { deleteProductAction, toggleProductStatusAction, upsertProductAction } from './actions';
+import { ProductsGrid } from './components/products-grid';
 
-type ProductFilter = "ALL" | "ACTIVE" | "INACTIVE";
+type ProductFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 
 function getSearchValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
-    return value[0] ?? "";
+    return value[0] ?? '';
   }
 
-  return value ?? "";
+  return value ?? '';
 }
 
 function normalizeFilter(value: string): ProductFilter {
   const uppercase = value.toUpperCase();
 
-  if (uppercase === "ACTIVE" || uppercase === "INACTIVE") {
+  if (uppercase === 'ACTIVE' || uppercase === 'INACTIVE') {
     return uppercase;
   }
 
-  return "ALL";
+  return 'ALL';
 }
 
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams?:
-    | Record<string, string | string[] | undefined>
-    | Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await resolveSearchParams(searchParams);
-  const flash = getFlashMessage(params);
   const searchQuery = getSearchValue(params.q).trim();
   const activeFilter = normalizeFilter(getSearchValue(params.status));
   const session = await requireAuthSession();
@@ -51,17 +42,24 @@ export default async function ProductsPage({
     getProductStats(),
     getDefaultSalePrices({ sellerId: session.seller.id }),
   ]);
+  const exportParams = new URLSearchParams();
+  if (searchQuery) {
+    exportParams.set('q', searchQuery);
+  }
+  if (activeFilter !== 'ALL') {
+    exportParams.set('status', activeFilter);
+  }
+  const exportHref = exportParams.toString() ? `/products/export?${exportParams.toString()}` : '/products/export';
 
   return (
-    <div className="flex flex-col gap-4">
-      {flash ? <FlashAlert type={flash.type} message={flash.message} /> : null}
-
+    <div className='flex flex-col gap-4'>
       <ProductsGrid
         products={products}
         productStats={productStats}
         activeFilter={activeFilter}
         searchQuery={searchQuery}
         defaultSalePrices={defaultSalePrices}
+        exportHref={exportHref}
         upsertAction={upsertProductAction}
         toggleStatusAction={toggleProductStatusAction}
         deleteAction={deleteProductAction}

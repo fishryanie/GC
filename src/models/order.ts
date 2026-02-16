@@ -1,17 +1,11 @@
-import { model, models, Schema, type InferSchemaType, type Model } from "mongoose";
-import {
-  COLLECTION_STATUSES,
-  ORDER_APPROVAL_STATUSES,
-  ORDER_DISCOUNT_STATUSES,
-  ORDER_FULFILLMENT_STATUSES,
-  SUPPLIER_PAYMENT_STATUSES,
-} from "@/lib/constants";
+import { COLLECTION_STATUSES, ORDER_APPROVAL_STATUSES, ORDER_DISCOUNT_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATUSES } from 'lib/constants';
+import { model, models, Schema, type InferSchemaType, type Model } from 'mongoose';
 
 const orderLineSchema = new Schema(
   {
     productId: {
       type: Schema.Types.ObjectId,
-      ref: "Product",
+      ref: 'Product',
       required: true,
     },
     productName: {
@@ -66,7 +60,7 @@ const profileSnapshotSchema = new Schema(
   {
     profileId: {
       type: Schema.Types.ObjectId,
-      ref: "PriceProfile",
+      ref: 'PriceProfile',
       required: true,
     },
     profileName: {
@@ -92,7 +86,7 @@ const orderApprovalSchema = new Schema(
     status: {
       type: String,
       enum: ORDER_APPROVAL_STATUSES,
-      default: "PENDING",
+      default: 'PENDING',
       required: true,
     },
     requestedAt: {
@@ -105,7 +99,7 @@ const orderApprovalSchema = new Schema(
     },
     reviewedBySellerId: {
       type: Schema.Types.ObjectId,
-      ref: "Seller",
+      ref: 'Seller',
     },
     reviewedBySellerName: {
       type: String,
@@ -126,7 +120,7 @@ const orderDiscountRequestSchema = new Schema(
     status: {
       type: String,
       enum: ORDER_DISCOUNT_STATUSES,
-      default: "NONE",
+      default: 'NONE',
       required: true,
     },
     requestedPercent: {
@@ -158,7 +152,7 @@ const orderDiscountRequestSchema = new Schema(
     },
     reviewedBySellerId: {
       type: Schema.Types.ObjectId,
-      ref: "Seller",
+      ref: 'Seller',
     },
     reviewedBySellerName: {
       type: String,
@@ -190,7 +184,7 @@ const orderSchema = new Schema(
     },
     customerId: {
       type: Schema.Types.ObjectId,
-      ref: "Customer",
+      ref: 'Customer',
       required: true,
     },
     customerName: {
@@ -201,7 +195,7 @@ const orderSchema = new Schema(
     },
     sellerId: {
       type: Schema.Types.ObjectId,
-      ref: "Seller",
+      ref: 'Seller',
       required: true,
     },
     sellerName: {
@@ -217,19 +211,19 @@ const orderSchema = new Schema(
     fulfillmentStatus: {
       type: String,
       enum: ORDER_FULFILLMENT_STATUSES,
-      default: "PENDING_APPROVAL",
+      default: 'PENDING_APPROVAL',
       required: true,
     },
     supplierPaymentStatus: {
       type: String,
       enum: SUPPLIER_PAYMENT_STATUSES,
-      default: "UNPAID_SUPPLIER",
+      default: 'UNPAID_SUPPLIER',
       required: true,
     },
     collectionStatus: {
       type: String,
       enum: COLLECTION_STATUSES,
-      default: "UNPAID",
+      default: 'UNPAID',
       required: true,
     },
     costProfile: {
@@ -245,7 +239,7 @@ const orderSchema = new Schema(
       required: true,
       default: () => ({
         requiresAdminApproval: true,
-        status: "PENDING",
+        status: 'PENDING',
         requestedAt: new Date(),
       }),
     },
@@ -253,7 +247,7 @@ const orderSchema = new Schema(
       type: orderDiscountRequestSchema,
       required: true,
       default: () => ({
-        status: "NONE",
+        status: 'NONE',
         requestedPercent: 0,
         requestedAmount: 0,
         requestedSaleAmount: 0,
@@ -263,7 +257,7 @@ const orderSchema = new Schema(
       type: [orderLineSchema],
       validate: {
         validator: (value: unknown[]) => Array.isArray(value) && value.length > 0,
-        message: "Order must include at least one line item.",
+        message: 'Order must include at least one line item.',
       },
       required: true,
     },
@@ -300,10 +294,9 @@ const orderSchema = new Schema(
 orderSchema.index({ deliveryDate: -1, createdAt: -1 });
 orderSchema.index({ customerId: 1, createdAt: -1 });
 orderSchema.index({ sellerId: 1, createdAt: -1 });
-orderSchema.index({ "approval.status": 1, createdAt: -1 });
-orderSchema.index({ "discountRequest.status": 1, createdAt: -1 });
+orderSchema.index({ 'approval.status': 1, createdAt: -1 });
+orderSchema.index({ 'discountRequest.status': 1, createdAt: -1 });
 
 export type OrderDocument = InferSchemaType<typeof orderSchema>;
 
-export const Order: Model<OrderDocument> =
-  (models.Order as Model<OrderDocument>) || model<OrderDocument>("Order", orderSchema);
+export const Order: Model<OrderDocument> = (models.Order as Model<OrderDocument>) || model<OrderDocument>('Order', orderSchema);

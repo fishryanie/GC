@@ -1,5 +1,5 @@
-import { unstable_noStore as noStore } from "next/cache";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase } from 'lib/mongodb';
+import { unstable_noStore as noStore } from 'next/cache';
 
 type DatabaseHealth = {
   ok: boolean;
@@ -7,11 +7,11 @@ type DatabaseHealth = {
 };
 
 function extractErrorMessage(error: unknown) {
-  if (error && typeof error === "object" && "message" in error) {
+  if (error && typeof error === 'object' && 'message' in error) {
     return String(error.message);
   }
 
-  return "Unable to connect to MongoDB.";
+  return 'Unable to connect to MongoDB.';
 }
 
 export async function getDatabaseHealth(): Promise<DatabaseHealth> {

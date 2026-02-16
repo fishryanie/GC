@@ -1,63 +1,58 @@
-import { FlashAlert } from "@/app/components/flash-alert";
-import { CustomersSellersBoard } from "@/app/(admin)/customers/components/customers-sellers-board";
 import {
   resetSellerPasswordAction,
   toggleCustomerStatusAction,
   toggleSellerStatusAction,
   upsertCustomerAction,
   upsertSellerAction,
-} from "@/app/(admin)/customers/actions";
-import { requireAuthSession } from "@/lib/auth";
-import { getCustomersPageData, getSellersPageData } from "@/lib/data";
-import { getFlashMessage } from "@/lib/flash";
-import { resolveSearchParams } from "@/lib/search-params";
+} from '@/app/(admin)/customers/actions';
+import { CustomersSellersBoard } from '@/app/(admin)/customers/components/customers-sellers-board';
+import { requireAuthSession } from 'lib/auth';
+import { getCustomersPageData, getSellersPageData } from 'lib/data';
+import { resolveSearchParams } from 'lib/search-params';
 
 function getSearchValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
-    return value[0] ?? "";
+    return value[0] ?? '';
   }
 
-  return value ?? "";
+  return value ?? '';
 }
 
-function normalizeTab(value: string): "customers" | "sellers" {
-  return value === "sellers" ? "sellers" : "customers";
+function normalizeTab(value: string): 'customers' | 'sellers' {
+  return value === 'sellers' ? 'sellers' : 'customers';
 }
 
-function normalizeCustomerStatus(value: string): "ALL" | "ACTIVE" | "INACTIVE" {
-  if (value === "ACTIVE" || value === "INACTIVE") {
+function normalizeCustomerStatus(value: string): 'ALL' | 'ACTIVE' | 'INACTIVE' {
+  if (value === 'ACTIVE' || value === 'INACTIVE') {
     return value;
   }
 
-  return "ALL";
+  return 'ALL';
 }
 
-function normalizeSellerRole(value: string): "ALL" | "ADMIN" | "SELLER" {
-  if (value === "ADMIN" || value === "SELLER") {
+function normalizeSellerRole(value: string): 'ALL' | 'ADMIN' | 'SELLER' {
+  if (value === 'ADMIN' || value === 'SELLER') {
     return value;
   }
 
-  return "ALL";
+  return 'ALL';
 }
 
-function normalizeSellerStatus(value: string): "ALL" | "ENABLED" | "DISABLED" {
-  if (value === "ENABLED" || value === "DISABLED") {
+function normalizeSellerStatus(value: string): 'ALL' | 'ENABLED' | 'DISABLED' {
+  if (value === 'ENABLED' || value === 'DISABLED') {
     return value;
   }
 
-  return "ALL";
+  return 'ALL';
 }
 
 export default async function CustomersPage({
   searchParams,
 }: {
-  searchParams?:
-    | Record<string, string | string[] | undefined>
-    | Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await resolveSearchParams(searchParams);
   const session = await requireAuthSession();
-  const flash = getFlashMessage(params);
 
   const activeTab = normalizeTab(getSearchValue(params.tab));
   const searchQuery = getSearchValue(params.q).trim();
@@ -72,16 +67,33 @@ export default async function CustomersPage({
     }),
     getSellersPageData({
       search: searchQuery || undefined,
-      role: sellerRoleFilter === "ALL" ? undefined : sellerRoleFilter,
+      role: sellerRoleFilter === 'ALL' ? undefined : sellerRoleFilter,
       status: sellerStatus,
     }),
   ]);
+  const exportParams = new URLSearchParams();
+  exportParams.set('tab', activeTab);
+  if (searchQuery) {
+    exportParams.set('q', searchQuery);
+  }
+  if (activeTab === 'customers') {
+    if (customerStatus !== 'ALL') {
+      exportParams.set('customerStatus', customerStatus);
+    }
+  } else {
+    if (sellerRoleFilter !== 'ALL') {
+      exportParams.set('sellerRole', sellerRoleFilter);
+    }
+    if (sellerStatus !== 'ALL') {
+      exportParams.set('sellerStatus', sellerStatus);
+    }
+  }
+  const exportHref = `/customers/export?${exportParams.toString()}`;
 
   return (
-    <div className="flex flex-col gap-4">
-      {flash ? <FlashAlert type={flash.type} message={flash.message} /> : null}
-
+    <div className='flex flex-col gap-4'>
       <CustomersSellersBoard
+        key={[activeTab, searchQuery || '-', customerStatus, sellerRoleFilter, sellerStatus].join('|')}
         activeTab={activeTab}
         searchQuery={searchQuery}
         customerStatus={customerStatus}
@@ -89,8 +101,9 @@ export default async function CustomersPage({
         sellerStatus={sellerStatus}
         customersData={customersData}
         sellersData={sellersData}
-        isAdmin={session.seller.role === "ADMIN"}
+        isAdmin={session.seller.role === 'ADMIN'}
         currentSellerId={session.seller.id}
+        exportHref={exportHref}
         upsertCustomerAction={upsertCustomerAction}
         toggleCustomerStatusAction={toggleCustomerStatusAction}
         upsertSellerAction={upsertSellerAction}

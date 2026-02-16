@@ -1,19 +1,12 @@
-"use server";
+'use server';
 
-import { Types } from "mongoose";
-import { requireAdminSession } from "@/lib/auth";
-import { INITIAL_PRODUCTS } from "@/lib/constants";
-import { connectToDatabase } from "@/lib/mongodb";
-import { PriceProfile } from "@/models/price-profile";
-import { Product } from "@/models/product";
-import {
-  formatMessage,
-  getActionMessages,
-  handleActionError,
-  redirectWithMessage,
-  revalidateCorePaths,
-  roundToThousand,
-} from "@/lib/action-helpers";
+import { formatMessage, getActionMessages, handleActionError, redirectWithMessage, revalidateCorePaths, roundToThousand } from 'lib/action-helpers';
+import { requireAdminSession } from 'lib/auth';
+import { INITIAL_PRODUCTS } from 'lib/constants';
+import { connectToDatabase } from 'lib/mongodb';
+import { PriceProfile } from 'models/price-profile';
+import { Product } from 'models/product';
+import { Types } from 'mongoose';
 
 export async function seedInitialDataAction() {
   try {
@@ -27,7 +20,7 @@ export async function seedInitialDataAction() {
         {
           $setOnInsert: {
             name: item.name,
-            unit: "kg",
+            unit: 'kg',
             isActive: true,
           },
         },
@@ -36,17 +29,17 @@ export async function seedInitialDataAction() {
     }
 
     const products = await Product.find().lean();
-    const productByName = new Map(products.map((product) => [product.name, product]));
+    const productByName = new Map(products.map(product => [product.name, product]));
 
-    const hasCostProfile = await PriceProfile.exists({ type: "COST" });
+    const hasCostProfile = await PriceProfile.exists({ type: 'COST' });
     if (!hasCostProfile) {
       await PriceProfile.create({
-        name: "Default Cost Price",
-        type: "COST",
+        name: 'Default Cost Price',
+        type: 'COST',
         effectiveFrom: new Date(),
         isActive: true,
-        notes: "Auto-generated from initial seed data",
-        items: INITIAL_PRODUCTS.map((item) => {
+        notes: 'Auto-generated from initial seed data',
+        items: INITIAL_PRODUCTS.map(item => {
           const product = productByName.get(item.name);
 
           if (!product) {
@@ -62,17 +55,17 @@ export async function seedInitialDataAction() {
       });
     }
 
-    const hasSaleProfile = await PriceProfile.exists({ type: "SALE" });
+    const hasSaleProfile = await PriceProfile.exists({ type: 'SALE' });
     if (!hasSaleProfile) {
       await PriceProfile.create({
-        name: "Reference Sale Price",
-        type: "SALE",
+        name: 'Reference Sale Price',
+        type: 'SALE',
         sellerId: new Types.ObjectId(session.seller.id),
         sellerName: session.seller.name,
         effectiveFrom: new Date(),
         isActive: true,
-        notes: "Auto-generated: cost + 20%",
-        items: INITIAL_PRODUCTS.map((item) => {
+        notes: 'Auto-generated: cost + 20%',
+        items: INITIAL_PRODUCTS.map(item => {
           const product = productByName.get(item.name);
 
           if (!product) {
@@ -90,8 +83,8 @@ export async function seedInitialDataAction() {
 
     revalidateCorePaths();
 
-    redirectWithMessage("/dashboard", "success", m.seeded);
+    redirectWithMessage('/dashboard', 'success', m.seeded);
   } catch (error) {
-    await handleActionError("/dashboard", error);
+    await handleActionError('/dashboard', error);
   }
 }

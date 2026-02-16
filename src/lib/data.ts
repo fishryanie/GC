@@ -1,35 +1,27 @@
-import { unstable_noStore as noStore } from "next/cache";
-import { Types } from "mongoose";
 import type {
-  CustomerView,
-  DashboardStats,
-  OrderView,
-  PriceProfileView,
-  ProductView,
-  SellerRole,
-  SellerView,
-} from "@/types";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Customer } from "@/models/customer";
-import { Order } from "@/models/order";
-import { PriceProfile } from "@/models/price-profile";
-import { Product } from "@/models/product";
-import { Seller } from "@/models/seller";
-import type {
+  CollectionStatus,
   OrderApprovalStatus,
   OrderDiscountStatus,
-  CollectionStatus,
   OrderFulfillmentStatus,
   PriceProfileType,
   SupplierPaymentStatus,
-} from "@/lib/constants";
+} from 'lib/constants';
+import { connectToDatabase } from 'lib/mongodb';
+import { Customer } from 'models/customer';
+import { Order } from 'models/order';
+import { PriceProfile } from 'models/price-profile';
+import { Product } from 'models/product';
+import { Seller } from 'models/seller';
+import { Types } from 'mongoose';
+import { unstable_noStore as noStore } from 'next/cache';
+import type { CustomerView, DashboardStats, OrderView, PriceProfileView, ProductView, SellerRole, SellerView } from 'types';
 
 function toIsoString(value: Date | string | null | undefined) {
   return new Date(value ?? Date.now()).toISOString();
 }
 
 function escapeRegex(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function buildSaleOwnershipClause(sellerId: string) {
@@ -37,11 +29,7 @@ function buildSaleOwnershipClause(sellerId: string) {
     return null;
   }
 
-  return [
-    { sellerId: new Types.ObjectId(sellerId) },
-    { sellerId: { $exists: false } },
-    { sellerId: null },
-  ] as Array<Record<string, unknown>>;
+  return [{ sellerId: new Types.ObjectId(sellerId) }, { sellerId: { $exists: false } }, { sellerId: null }] as Array<Record<string, unknown>>;
 }
 
 function toOrderView(doc: {
@@ -110,40 +98,29 @@ function toOrderView(doc: {
     id: String(doc._id),
     code: doc.code,
     buyerName: doc.buyerName,
-    customerId: doc.customerId ? String(doc.customerId) : "",
+    customerId: doc.customerId ? String(doc.customerId) : '',
     customerName: doc.customerName || doc.buyerName,
-    sellerId: doc.sellerId ? String(doc.sellerId) : "",
-    sellerName: doc.sellerName || "",
+    sellerId: doc.sellerId ? String(doc.sellerId) : '',
+    sellerName: doc.sellerName || '',
     deliveryDate: toIsoString(doc.deliveryDate),
     fulfillmentStatus: doc.fulfillmentStatus,
     approval: {
       requiresAdminApproval: doc.approval?.requiresAdminApproval ?? false,
-      status:
-        doc.approval?.status ??
-        (doc.fulfillmentStatus === "PENDING_APPROVAL" ? "PENDING" : "APPROVED"),
+      status: doc.approval?.status ?? (doc.fulfillmentStatus === 'PENDING_APPROVAL' ? 'PENDING' : 'APPROVED'),
       requestedAt: toIsoString(doc.approval?.requestedAt ?? doc.createdAt),
       reviewedAt: doc.approval?.reviewedAt ? toIsoString(doc.approval.reviewedAt) : undefined,
-      reviewedBySellerId: doc.approval?.reviewedBySellerId
-        ? String(doc.approval.reviewedBySellerId)
-        : undefined,
+      reviewedBySellerId: doc.approval?.reviewedBySellerId ? String(doc.approval.reviewedBySellerId) : undefined,
       reviewedBySellerName: doc.approval?.reviewedBySellerName || undefined,
       note: doc.approval?.note || undefined,
     },
     discountRequest: {
-      status: doc.discountRequest?.status ?? "NONE",
+      status: doc.discountRequest?.status ?? 'NONE',
       requestedPercent: doc.discountRequest?.requestedPercent ?? 0,
       requestedAmount: doc.discountRequest?.requestedAmount ?? 0,
-      requestedSaleAmount:
-        doc.discountRequest?.requestedSaleAmount ??
-        doc.baseSaleAmount ??
-        doc.totalSaleAmount,
+      requestedSaleAmount: doc.discountRequest?.requestedSaleAmount ?? doc.baseSaleAmount ?? doc.totalSaleAmount,
       reason: doc.discountRequest?.reason || undefined,
-      reviewedAt: doc.discountRequest?.reviewedAt
-        ? toIsoString(doc.discountRequest.reviewedAt)
-        : undefined,
-      reviewedBySellerId: doc.discountRequest?.reviewedBySellerId
-        ? String(doc.discountRequest.reviewedBySellerId)
-        : undefined,
+      reviewedAt: doc.discountRequest?.reviewedAt ? toIsoString(doc.discountRequest.reviewedAt) : undefined,
+      reviewedBySellerId: doc.discountRequest?.reviewedBySellerId ? String(doc.discountRequest.reviewedBySellerId) : undefined,
       reviewedBySellerName: doc.discountRequest?.reviewedBySellerName || undefined,
       reviewNote: doc.discountRequest?.reviewNote || undefined,
     },
@@ -164,7 +141,7 @@ function toOrderView(doc: {
       profileName: doc.saleProfile.profileName,
       effectiveFrom: toIsoString(doc.saleProfile.effectiveFrom),
     },
-    items: doc.items.map((item) => ({
+    items: doc.items.map(item => ({
       productId: String(item.productId),
       productName: item.productName,
       weightKg: item.weightKg,
@@ -198,8 +175,8 @@ function toCustomerView(doc: {
     id: String(doc._id),
     name: doc.name,
     phone: doc.phone,
-    email: doc.email ?? "",
-    notes: doc.notes ?? "",
+    email: doc.email ?? '',
+    notes: doc.notes ?? '',
     isActive: doc.isActive,
     orderCount: doc.orderCount ?? 0,
     totalSpentAmount: doc.totalSpentAmount ?? 0,
@@ -259,7 +236,7 @@ function toPriceProfileView(doc: {
     effectiveFrom: toIsoString(doc.effectiveFrom),
     notes: doc.notes ?? undefined,
     isActive: doc.isActive,
-    items: (doc.items ?? []).map((item) => ({
+    items: (doc.items ?? []).map(item => ({
       productId: String(item.productId),
       productName: item.productName,
       pricePerKg: item.pricePerKg,
@@ -273,10 +250,24 @@ export type OrderFilters = {
   fulfillmentStatus?: OrderFulfillmentStatus;
   supplierPaymentStatus?: SupplierPaymentStatus;
   collectionStatus?: CollectionStatus;
+  sellerId?: string;
   deliveryYear?: number;
   deliveryMonth?: number;
   deliveryDay?: number;
   search?: string;
+};
+
+export type SellerOrderStats = {
+  sellerId: string;
+  sellerName: string;
+  orderCount: number;
+  totalSaleAmount: number;
+  totalCostAmount: number;
+  totalProfitAmount: number;
+  averageOrderAmount: number;
+  pendingApprovalCount: number;
+  deliveringCount: number;
+  deliveredCount: number;
 };
 
 export type OrdersPageData = {
@@ -286,6 +277,124 @@ export type OrdersPageData = {
   filteredCount: number;
   totalCount: number;
   availableYears: number[];
+};
+
+export type SellerPerformanceOverview = {
+  sellers: SellerOrderStats[];
+  sellerCount: number;
+  totalOrders: number;
+  totalSaleAmount: number;
+  totalCostAmount: number;
+  totalProfitAmount: number;
+};
+
+export type SellerDetailsStats = {
+  totalOrders: number;
+  totalSaleAmount: number;
+  totalCostAmount: number;
+  totalProfitAmount: number;
+  totalWeightKg: number;
+  averageOrderAmount: number;
+  pendingApprovalOrders: number;
+  deliveringOrders: number;
+  deliveredOrders: number;
+  canceledOrders: number;
+  discountRequestedOrders: number;
+  discountApprovedOrders: number;
+  discountRejectedOrders: number;
+  unpaidCollectionOrders: number;
+  partialCollectionOrders: number;
+  paidCollectionOrders: number;
+  refundedOrders: number;
+  unpaidSupplierOrders: number;
+  supplierPaidOrders: number;
+  capitalCycleCompletedOrders: number;
+  firstOrderAt?: string;
+  lastOrderAt?: string;
+  daysActiveWithOrders: number;
+};
+
+export type SellerDetailsMonthlyPoint = {
+  year: number;
+  month: number;
+  orderCount: number;
+  totalSaleAmount: number;
+  totalProfitAmount: number;
+};
+
+export type SellerDetailsTopProduct = {
+  productId: string;
+  productName: string;
+  orderCount: number;
+  totalWeightKg: number;
+  totalSaleAmount: number;
+  totalProfitAmount: number;
+};
+
+export type SellerDetailsPageData = {
+  seller: SellerView | null;
+  stats: SellerDetailsStats;
+  monthlyPerformance: SellerDetailsMonthlyPoint[];
+  topProducts: SellerDetailsTopProduct[];
+  recentOrders: OrderView[];
+  activeSaleProfiles: PriceProfileView[];
+  latestSaleProfiles: PriceProfileView[];
+};
+
+export type CustomerDetailsStats = {
+  totalOrders: number;
+  totalSpentAmount: number;
+  totalCostAmount: number;
+  totalProfitAmount: number;
+  totalWeightKg: number;
+  averageOrderAmount: number;
+  pendingApprovalOrders: number;
+  deliveringOrders: number;
+  deliveredOrders: number;
+  canceledOrders: number;
+  unpaidOrders: number;
+  partiallyPaidOrders: number;
+  paidInFullOrders: number;
+  refundedOrders: number;
+  uniqueSellerCount: number;
+  firstOrderAt?: string;
+  lastOrderAt?: string;
+  daysActiveWithOrders: number;
+};
+
+export type CustomerDetailsMonthlyPoint = {
+  year: number;
+  month: number;
+  orderCount: number;
+  totalSpentAmount: number;
+  totalProfitAmount: number;
+};
+
+export type CustomerDetailsTopProduct = {
+  productId: string;
+  productName: string;
+  orderCount: number;
+  totalWeightKg: number;
+  totalSpentAmount: number;
+  totalProfitAmount: number;
+};
+
+export type CustomerDetailsSellerContribution = {
+  sellerId: string;
+  sellerName: string;
+  orderCount: number;
+  totalSpentAmount: number;
+  totalProfitAmount: number;
+  lastOrderAt?: string;
+};
+
+export type CustomerDetailsPageData = {
+  customer: CustomerView | null;
+  stats: CustomerDetailsStats;
+  monthlyPerformance: CustomerDetailsMonthlyPoint[];
+  topProducts: CustomerDetailsTopProduct[];
+  sellerContributions: CustomerDetailsSellerContribution[];
+  recentOrders: OrderView[];
 };
 
 export type PriceProfileStats = {
@@ -303,7 +412,7 @@ export type ProductStats = {
 
 export type CustomerFilters = {
   search?: string;
-  status?: "ALL" | "ACTIVE" | "INACTIVE";
+  status?: 'ALL' | 'ACTIVE' | 'INACTIVE';
 };
 
 export type CustomersPageData = {
@@ -320,7 +429,7 @@ export type CustomersPageData = {
 export type SellerFilters = {
   search?: string;
   role?: SellerRole;
-  status?: "ALL" | "ENABLED" | "DISABLED";
+  status?: 'ALL' | 'ENABLED' | 'DISABLED';
 };
 
 export type SellerPerformanceView = {
@@ -363,32 +472,34 @@ function buildOrdersQuery(filters?: OrderFilters) {
     query.collectionStatus = filters.collectionStatus;
   }
 
+  if (filters?.sellerId) {
+    if (Types.ObjectId.isValid(filters.sellerId)) {
+      query.sellerId = new Types.ObjectId(filters.sellerId);
+    } else {
+      query._id = { $exists: false };
+    }
+  }
+
   if (filters?.search?.trim()) {
     const keyword = {
       $regex: escapeRegex(filters.search.trim()),
-      $options: "i",
+      $options: 'i',
     };
-    query.$or = [
-      { code: keyword },
-      { buyerName: keyword },
-      { customerName: keyword },
-      { sellerName: keyword },
-      { "items.productName": keyword },
-    ];
+    query.$or = [{ code: keyword }, { buyerName: keyword }, { customerName: keyword }, { sellerName: keyword }, { 'items.productName': keyword }];
   }
 
   const dateExpr: Record<string, unknown>[] = [];
 
-  if (typeof filters?.deliveryYear === "number") {
-    dateExpr.push({ $eq: [{ $year: "$deliveryDate" }, filters.deliveryYear] });
+  if (typeof filters?.deliveryYear === 'number') {
+    dateExpr.push({ $eq: [{ $year: '$deliveryDate' }, filters.deliveryYear] });
   }
 
-  if (typeof filters?.deliveryMonth === "number") {
-    dateExpr.push({ $eq: [{ $month: "$deliveryDate" }, filters.deliveryMonth] });
+  if (typeof filters?.deliveryMonth === 'number') {
+    dateExpr.push({ $eq: [{ $month: '$deliveryDate' }, filters.deliveryMonth] });
   }
 
-  if (typeof filters?.deliveryDay === "number") {
-    dateExpr.push({ $eq: [{ $dayOfMonth: "$deliveryDate" }, filters.deliveryDay] });
+  if (typeof filters?.deliveryDay === 'number') {
+    dateExpr.push({ $eq: [{ $dayOfMonth: '$deliveryDate' }, filters.deliveryDay] });
   }
 
   if (dateExpr.length === 1) {
@@ -403,16 +514,16 @@ function buildOrdersQuery(filters?: OrderFilters) {
 function buildCustomersQuery(filters?: CustomerFilters) {
   const query: Record<string, unknown> = {};
 
-  if (filters?.status === "ACTIVE") {
+  if (filters?.status === 'ACTIVE') {
     query.isActive = true;
-  } else if (filters?.status === "INACTIVE") {
+  } else if (filters?.status === 'INACTIVE') {
     query.isActive = false;
   }
 
   if (filters?.search?.trim()) {
     const keyword = {
       $regex: escapeRegex(filters.search.trim()),
-      $options: "i",
+      $options: 'i',
     };
 
     query.$or = [{ name: keyword }, { phone: keyword }, { email: keyword }];
@@ -428,16 +539,16 @@ function buildSellersQuery(filters?: SellerFilters) {
     query.role = filters.role;
   }
 
-  if (filters?.status === "ENABLED") {
+  if (filters?.status === 'ENABLED') {
     query.isEnabled = true;
-  } else if (filters?.status === "DISABLED") {
+  } else if (filters?.status === 'DISABLED') {
     query.isEnabled = false;
   }
 
   if (filters?.search?.trim()) {
     const keyword = {
       $regex: escapeRegex(filters.search.trim()),
-      $options: "i",
+      $options: 'i',
     };
 
     query.$or = [{ name: keyword }, { email: keyword }];
@@ -458,25 +569,21 @@ async function runDataQuery<T>(scope: string, fallback: T, queryFn: () => Promis
   }
 }
 
-export async function listProducts(options?: {
-  activeOnly?: boolean;
-  search?: string;
-  status?: "ALL" | "ACTIVE" | "INACTIVE";
-}) {
-  return runDataQuery("listProducts", [] as ProductView[], async () => {
+export async function listProducts(options?: { activeOnly?: boolean; search?: string; status?: 'ALL' | 'ACTIVE' | 'INACTIVE' }) {
+  return runDataQuery('listProducts', [] as ProductView[], async () => {
     const query: Record<string, unknown> = {};
     const trimmedSearch = options?.search?.trim();
 
     if (options?.activeOnly) {
       query.isActive = true;
-    } else if (options?.status === "ACTIVE") {
+    } else if (options?.status === 'ACTIVE') {
       query.isActive = true;
-    } else if (options?.status === "INACTIVE") {
+    } else if (options?.status === 'INACTIVE') {
       query.isActive = false;
     }
 
     if (trimmedSearch) {
-      const keyword = { $regex: escapeRegex(trimmedSearch), $options: "i" };
+      const keyword = { $regex: escapeRegex(trimmedSearch), $options: 'i' };
       query.$or = [{ name: keyword }, { description: keyword }];
     }
 
@@ -486,8 +593,8 @@ export async function listProducts(options?: {
       (doc): ProductView => ({
         id: String(doc._id),
         name: doc.name,
-        description: doc.description ?? "",
-        unit: "kg",
+        description: doc.description ?? '',
+        unit: 'kg',
         isActive: doc.isActive,
         createdAt: toIsoString(doc.createdAt),
         updatedAt: toIsoString(doc.updatedAt),
@@ -503,11 +610,8 @@ const DEFAULT_PRODUCT_STATS: ProductStats = {
 };
 
 export async function getProductStats() {
-  return runDataQuery("getProductStats", DEFAULT_PRODUCT_STATS, async () => {
-    const [totalProducts, activeProducts] = await Promise.all([
-      Product.countDocuments(),
-      Product.countDocuments({ isActive: true }),
-    ]);
+  return runDataQuery('getProductStats', DEFAULT_PRODUCT_STATS, async () => {
+    const [totalProducts, activeProducts] = await Promise.all([Product.countDocuments(), Product.countDocuments({ isActive: true })]);
 
     return {
       totalProducts,
@@ -518,8 +622,8 @@ export async function getProductStats() {
 }
 
 export async function getDefaultSalePrices(options?: { sellerId?: string }) {
-  return runDataQuery("getDefaultSalePrices", {} as DefaultSalePriceMap, async () => {
-    const query: Record<string, unknown> = { type: "SALE" };
+  return runDataQuery('getDefaultSalePrices', {} as DefaultSalePriceMap, async () => {
+    const query: Record<string, unknown> = { type: 'SALE' };
 
     if (options?.sellerId) {
       const ownershipClause = buildSaleOwnershipClause(options.sellerId);
@@ -537,11 +641,7 @@ export async function getDefaultSalePrices(options?: { sellerId?: string }) {
       .sort({ effectiveFrom: -1, createdAt: -1 })
       .lean();
 
-    const fallbackProfile =
-      activeProfile ??
-      (await PriceProfile.findOne(query)
-        .sort({ effectiveFrom: -1, createdAt: -1 })
-        .lean());
+    const fallbackProfile = activeProfile ?? (await PriceProfile.findOne(query).sort({ effectiveFrom: -1, createdAt: -1 }).lean());
 
     if (!fallbackProfile) {
       return {};
@@ -561,11 +661,13 @@ export async function listPriceProfiles(options?: {
   type?: PriceProfileType;
   activeOnly?: boolean;
   sellerId?: string;
-  status?: "ALL" | "ACTIVE" | "INACTIVE";
+  createdBy?: string;
+  status?: 'ALL' | 'ACTIVE' | 'INACTIVE';
   search?: string;
 }) {
-  return runDataQuery("listPriceProfiles", [] as PriceProfileView[], async () => {
+  return runDataQuery('listPriceProfiles', [] as PriceProfileView[], async () => {
     const query: Record<string, unknown> = {};
+    const andClauses: Array<Record<string, unknown>> = [];
 
     if (options?.type) {
       query.type = options.type;
@@ -573,27 +675,27 @@ export async function listPriceProfiles(options?: {
 
     if (options?.activeOnly) {
       query.isActive = true;
-    } else if (options?.status === "ACTIVE") {
+    } else if (options?.status === 'ACTIVE') {
       query.isActive = true;
-    } else if (options?.status === "INACTIVE") {
+    } else if (options?.status === 'INACTIVE') {
       query.isActive = false;
     }
 
     if (options?.search?.trim()) {
       query.name = {
         $regex: escapeRegex(options.search.trim()),
-        $options: "i",
+        $options: 'i',
       };
     }
 
     if (options?.sellerId) {
-      if (options.type === "SALE") {
+      if (options.type === 'SALE') {
         const ownershipClause = buildSaleOwnershipClause(options.sellerId);
         if (!ownershipClause) {
           return [];
         }
 
-        query.$or = ownershipClause;
+        andClauses.push({ $or: ownershipClause });
       } else if (!Types.ObjectId.isValid(options.sellerId)) {
         return [];
       } else {
@@ -601,18 +703,32 @@ export async function listPriceProfiles(options?: {
       }
     }
 
-    const docs = await PriceProfile.find(query)
-      .sort({ effectiveFrom: -1, createdAt: -1 })
-      .lean();
+    if (options?.createdBy && options.type === 'SALE') {
+      if (options.createdBy === 'SYSTEM') {
+        andClauses.push({
+          $or: [{ sellerId: { $exists: false } }, { sellerId: null }],
+        });
+      } else if (Types.ObjectId.isValid(options.createdBy)) {
+        andClauses.push({ sellerId: new Types.ObjectId(options.createdBy) });
+      } else {
+        return [];
+      }
+    }
+
+    if (andClauses.length > 0) {
+      query.$and = andClauses;
+    }
+
+    const docs = await PriceProfile.find(query).sort({ effectiveFrom: -1, createdAt: -1 }).lean();
 
     return docs.map(toPriceProfileView);
   });
 }
 
 export async function getActiveCostProfile() {
-  return runDataQuery("getActiveCostProfile", null as PriceProfileView | null, async () => {
+  return runDataQuery('getActiveCostProfile', null as PriceProfileView | null, async () => {
     const doc = await PriceProfile.findOne({
-      type: "COST",
+      type: 'COST',
       isActive: true,
     })
       .sort({ effectiveFrom: -1, createdAt: -1 })
@@ -622,12 +738,8 @@ export async function getActiveCostProfile() {
   });
 }
 
-export async function listCustomers(options?: {
-  activeOnly?: boolean;
-  search?: string;
-  limit?: number;
-}) {
-  return runDataQuery("listCustomers", [] as CustomerView[], async () => {
+export async function listCustomers(options?: { activeOnly?: boolean; search?: string; limit?: number }) {
+  return runDataQuery('listCustomers', [] as CustomerView[], async () => {
     const query: Record<string, unknown> = {};
 
     if (options?.activeOnly) {
@@ -636,7 +748,7 @@ export async function listCustomers(options?: {
 
     const trimmedSearch = options?.search?.trim();
     if (trimmedSearch) {
-      const keyword = { $regex: escapeRegex(trimmedSearch), $options: "i" };
+      const keyword = { $regex: escapeRegex(trimmedSearch), $options: 'i' };
       query.$or = [{ name: keyword }, { phone: keyword }, { email: keyword }];
     }
 
@@ -662,29 +774,28 @@ const DEFAULT_CUSTOMERS_PAGE_DATA: CustomersPageData = {
 };
 
 export async function getCustomersPageData(filters?: CustomerFilters) {
-  return runDataQuery("getCustomersPageData", DEFAULT_CUSTOMERS_PAGE_DATA, async () => {
+  return runDataQuery('getCustomersPageData', DEFAULT_CUSTOMERS_PAGE_DATA, async () => {
     const query = buildCustomersQuery(filters);
     const monthStart = new Date();
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
 
-    const [customers, filteredCount, totalCount, activeCount, withOrders, totalSpentAgg, newThisMonth] =
-      await Promise.all([
-        Customer.find(query).sort({ createdAt: -1 }).lean(),
-        Customer.countDocuments(query),
-        Customer.countDocuments(),
-        Customer.countDocuments({ isActive: true }),
-        Customer.countDocuments({ orderCount: { $gt: 0 } }),
-        Customer.aggregate([
-          {
-            $group: {
-              _id: null,
-              totalSpentAmount: { $sum: "$totalSpentAmount" },
-            },
+    const [customers, filteredCount, totalCount, activeCount, withOrders, totalSpentAgg, newThisMonth] = await Promise.all([
+      Customer.find(query).sort({ createdAt: -1 }).lean(),
+      Customer.countDocuments(query),
+      Customer.countDocuments(),
+      Customer.countDocuments({ isActive: true }),
+      Customer.countDocuments({ orderCount: { $gt: 0 } }),
+      Customer.aggregate([
+        {
+          $group: {
+            _id: null,
+            totalSpentAmount: { $sum: '$totalSpentAmount' },
           },
-        ]),
-        Customer.countDocuments({ createdAt: { $gte: monthStart } }),
-      ]);
+        },
+      ]),
+      Customer.countDocuments({ createdAt: { $gte: monthStart } }),
+    ]);
 
     const spent = totalSpentAgg[0]?.totalSpentAmount ?? 0;
 
@@ -701,12 +812,8 @@ export async function getCustomersPageData(filters?: CustomerFilters) {
   });
 }
 
-export async function listSellers(options?: {
-  role?: SellerRole;
-  status?: "ALL" | "ENABLED" | "DISABLED";
-  search?: string;
-}) {
-  return runDataQuery("listSellers", [] as SellerView[], async () => {
+export async function listSellers(options?: { role?: SellerRole; status?: 'ALL' | 'ENABLED' | 'DISABLED'; search?: string }) {
+  return runDataQuery('listSellers', [] as SellerView[], async () => {
     const docs = await Seller.find(buildSellersQuery(options)).sort({ createdAt: -1 }).lean();
     return docs.map(toSellerView);
   });
@@ -724,37 +831,36 @@ const DEFAULT_SELLERS_PAGE_DATA: SellersPageData = {
 };
 
 export async function getSellersPageData(filters?: SellerFilters) {
-  return runDataQuery("getSellersPageData", DEFAULT_SELLERS_PAGE_DATA, async () => {
+  return runDataQuery('getSellersPageData', DEFAULT_SELLERS_PAGE_DATA, async () => {
     const query = buildSellersQuery(filters);
     const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-    const [sellers, filteredCount, totalCount, adminCount, sellerCount, enabledCount, topSellersRaw] =
-      await Promise.all([
-        Seller.find(query).sort({ createdAt: -1 }).lean(),
-        Seller.countDocuments(query),
-        Seller.countDocuments(),
-        Seller.countDocuments({ role: "ADMIN" }),
-        Seller.countDocuments({ role: "SELLER" }),
-        Seller.countDocuments({ isEnabled: true }),
-        Order.aggregate([
-          {
-            $match: {
-              sellerId: { $exists: true, $ne: null },
-              createdAt: { $gte: last30Days },
-            },
+    const [sellers, filteredCount, totalCount, adminCount, sellerCount, enabledCount, topSellersRaw] = await Promise.all([
+      Seller.find(query).sort({ createdAt: -1 }).lean(),
+      Seller.countDocuments(query),
+      Seller.countDocuments(),
+      Seller.countDocuments({ role: 'ADMIN' }),
+      Seller.countDocuments({ role: 'SELLER' }),
+      Seller.countDocuments({ isEnabled: true }),
+      Order.aggregate([
+        {
+          $match: {
+            sellerId: { $exists: true, $ne: null },
+            createdAt: { $gte: last30Days },
           },
-          {
-            $group: {
-              _id: "$sellerId",
-              sellerName: { $first: "$sellerName" },
-              totalOrders: { $sum: 1 },
-              totalSaleAmount: { $sum: "$totalSaleAmount" },
-            },
+        },
+        {
+          $group: {
+            _id: '$sellerId',
+            sellerName: { $first: '$sellerName' },
+            totalOrders: { $sum: 1 },
+            totalSaleAmount: { $sum: '$totalSaleAmount' },
           },
-          { $sort: { totalOrders: -1, totalSaleAmount: -1 } },
-          { $limit: 5 },
-        ]),
-      ]);
+        },
+        { $sort: { totalOrders: -1, totalSaleAmount: -1 } },
+        { $limit: 5 },
+      ]),
+    ]);
 
     return {
       sellers: sellers.map(toSellerView),
@@ -764,9 +870,9 @@ export async function getSellersPageData(filters?: SellerFilters) {
       sellerCount,
       enabledCount,
       disabledCount: Math.max(totalCount - enabledCount, 0),
-      topSellers30d: topSellersRaw.map((item) => ({
+      topSellers30d: topSellersRaw.map(item => ({
         sellerId: String(item._id),
-        sellerName: item.sellerName || "Unknown",
+        sellerName: item.sellerName || 'Unknown',
         totalOrders: Number(item.totalOrders || 0),
         totalSaleAmount: Number(item.totalSaleAmount || 0),
       })),
@@ -775,7 +881,7 @@ export async function getSellersPageData(filters?: SellerFilters) {
 }
 
 export async function listOrders(options?: ListOrdersOptions) {
-  return runDataQuery("listOrders", [] as OrderView[], async () => {
+  return runDataQuery('listOrders', [] as OrderView[], async () => {
     const query = Order.find(buildOrdersQuery(options?.filters)).sort({ createdAt: -1 });
 
     if (options?.limit) {
@@ -798,7 +904,7 @@ const DEFAULT_ORDERS_PAGE_DATA: OrdersPageData = {
 };
 
 export async function getOrdersPageData(filters?: OrderFilters) {
-  return runDataQuery("getOrdersPageData", DEFAULT_ORDERS_PAGE_DATA, async () => {
+  return runDataQuery('getOrdersPageData', DEFAULT_ORDERS_PAGE_DATA, async () => {
     const query = buildOrdersQuery(filters);
 
     const [orderDocs, totalCount, filteredCount, totalsAgg, yearsAgg] = await Promise.all([
@@ -810,15 +916,15 @@ export async function getOrdersPageData(filters?: OrderFilters) {
         {
           $group: {
             _id: null,
-            totalSaleAmount: { $sum: "$totalSaleAmount" },
-            totalProfitAmount: { $sum: "$totalProfitAmount" },
+            totalSaleAmount: { $sum: '$totalSaleAmount' },
+            totalProfitAmount: { $sum: '$totalProfitAmount' },
           },
         },
       ]),
       Order.aggregate([
         {
           $group: {
-            _id: { $year: "$deliveryDate" },
+            _id: { $year: '$deliveryDate' },
           },
         },
         { $sort: { _id: -1 } },
@@ -836,10 +942,654 @@ export async function getOrdersPageData(filters?: OrderFilters) {
       totalProfitAmount: totals.totalProfitAmount ?? 0,
       filteredCount,
       totalCount,
-      availableYears: yearsAgg
-        .map((entry) => Number(entry._id))
-        .filter((year) => Number.isFinite(year)),
+      availableYears: yearsAgg.map(entry => Number(entry._id)).filter(year => Number.isFinite(year)),
     } satisfies OrdersPageData;
+  });
+}
+
+const DEFAULT_SELLER_PERFORMANCE_OVERVIEW: SellerPerformanceOverview = {
+  sellers: [],
+  sellerCount: 0,
+  totalOrders: 0,
+  totalSaleAmount: 0,
+  totalCostAmount: 0,
+  totalProfitAmount: 0,
+};
+
+const DEFAULT_SELLER_DETAILS_STATS: SellerDetailsStats = {
+  totalOrders: 0,
+  totalSaleAmount: 0,
+  totalCostAmount: 0,
+  totalProfitAmount: 0,
+  totalWeightKg: 0,
+  averageOrderAmount: 0,
+  pendingApprovalOrders: 0,
+  deliveringOrders: 0,
+  deliveredOrders: 0,
+  canceledOrders: 0,
+  discountRequestedOrders: 0,
+  discountApprovedOrders: 0,
+  discountRejectedOrders: 0,
+  unpaidCollectionOrders: 0,
+  partialCollectionOrders: 0,
+  paidCollectionOrders: 0,
+  refundedOrders: 0,
+  unpaidSupplierOrders: 0,
+  supplierPaidOrders: 0,
+  capitalCycleCompletedOrders: 0,
+  firstOrderAt: undefined,
+  lastOrderAt: undefined,
+  daysActiveWithOrders: 0,
+};
+
+const DEFAULT_SELLER_DETAILS_PAGE_DATA: SellerDetailsPageData = {
+  seller: null,
+  stats: DEFAULT_SELLER_DETAILS_STATS,
+  monthlyPerformance: [],
+  topProducts: [],
+  recentOrders: [],
+  activeSaleProfiles: [],
+  latestSaleProfiles: [],
+};
+
+const DEFAULT_CUSTOMER_DETAILS_STATS: CustomerDetailsStats = {
+  totalOrders: 0,
+  totalSpentAmount: 0,
+  totalCostAmount: 0,
+  totalProfitAmount: 0,
+  totalWeightKg: 0,
+  averageOrderAmount: 0,
+  pendingApprovalOrders: 0,
+  deliveringOrders: 0,
+  deliveredOrders: 0,
+  canceledOrders: 0,
+  unpaidOrders: 0,
+  partiallyPaidOrders: 0,
+  paidInFullOrders: 0,
+  refundedOrders: 0,
+  uniqueSellerCount: 0,
+  firstOrderAt: undefined,
+  lastOrderAt: undefined,
+  daysActiveWithOrders: 0,
+};
+
+const DEFAULT_CUSTOMER_DETAILS_PAGE_DATA: CustomerDetailsPageData = {
+  customer: null,
+  stats: DEFAULT_CUSTOMER_DETAILS_STATS,
+  monthlyPerformance: [],
+  topProducts: [],
+  sellerContributions: [],
+  recentOrders: [],
+};
+
+export async function getSellerPerformanceOverview() {
+  return runDataQuery('getSellerPerformanceOverview', DEFAULT_SELLER_PERFORMANCE_OVERVIEW, async () => {
+    const raw = await Order.aggregate([
+      {
+        $group: {
+          _id: '$sellerId',
+          sellerName: { $first: '$sellerName' },
+          orderCount: { $sum: 1 },
+          totalSaleAmount: { $sum: '$totalSaleAmount' },
+          totalCostAmount: { $sum: '$totalCostAmount' },
+          totalProfitAmount: { $sum: '$totalProfitAmount' },
+          pendingApprovalCount: {
+            $sum: {
+              $cond: [{ $eq: ['$approval.status', 'PENDING'] }, 1, 0],
+            },
+          },
+          deliveringCount: {
+            $sum: {
+              $cond: [{ $eq: ['$fulfillmentStatus', 'DELIVERING'] }, 1, 0],
+            },
+          },
+          deliveredCount: {
+            $sum: {
+              $cond: [{ $eq: ['$fulfillmentStatus', 'DELIVERED'] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          averageOrderAmount: {
+            $cond: [{ $gt: ['$orderCount', 0] }, { $divide: ['$totalSaleAmount', '$orderCount'] }, 0],
+          },
+        },
+      },
+      { $sort: { totalSaleAmount: -1, orderCount: -1 } },
+    ]);
+
+    const sellers = raw.map(item => ({
+      sellerId: item._id ? String(item._id) : '',
+      sellerName: item.sellerName || 'Unknown seller',
+      orderCount: Number(item.orderCount || 0),
+      totalSaleAmount: Number(item.totalSaleAmount || 0),
+      totalCostAmount: Number(item.totalCostAmount || 0),
+      totalProfitAmount: Number(item.totalProfitAmount || 0),
+      averageOrderAmount: Number(item.averageOrderAmount || 0),
+      pendingApprovalCount: Number(item.pendingApprovalCount || 0),
+      deliveringCount: Number(item.deliveringCount || 0),
+      deliveredCount: Number(item.deliveredCount || 0),
+    }));
+
+    return {
+      sellers,
+      sellerCount: sellers.length,
+      totalOrders: sellers.reduce((total, item) => total + item.orderCount, 0),
+      totalSaleAmount: sellers.reduce((total, item) => total + item.totalSaleAmount, 0),
+      totalCostAmount: sellers.reduce((total, item) => total + item.totalCostAmount, 0),
+      totalProfitAmount: sellers.reduce((total, item) => total + item.totalProfitAmount, 0),
+    } satisfies SellerPerformanceOverview;
+  });
+}
+
+export async function getSellerDetailsPageData(sellerId: string) {
+  return runDataQuery('getSellerDetailsPageData', DEFAULT_SELLER_DETAILS_PAGE_DATA, async () => {
+    if (!Types.ObjectId.isValid(sellerId)) {
+      return DEFAULT_SELLER_DETAILS_PAGE_DATA;
+    }
+
+    const sellerObjectId = new Types.ObjectId(sellerId);
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+
+    const [sellerDoc, statsRaw, monthlyRaw, topProductsRaw, recentOrderDocs, activeProfilesDocs, latestProfilesDocs] = await Promise.all([
+      Seller.findById(sellerObjectId).lean(),
+      Order.aggregate([
+        { $match: { sellerId: sellerObjectId } },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalSaleAmount: { $sum: '$totalSaleAmount' },
+            totalCostAmount: { $sum: '$totalCostAmount' },
+            totalProfitAmount: { $sum: '$totalProfitAmount' },
+            totalWeightKg: { $sum: '$totalWeightKg' },
+            pendingApprovalOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$approval.status', 'PENDING'] }, 1, 0],
+              },
+            },
+            deliveringOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$fulfillmentStatus', 'DELIVERING'] }, 1, 0],
+              },
+            },
+            deliveredOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$fulfillmentStatus', 'DELIVERED'] }, 1, 0],
+              },
+            },
+            canceledOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$fulfillmentStatus', 'CANCELED'] }, 1, 0],
+              },
+            },
+            discountRequestedOrders: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [{ $eq: ['$discountRequest.status', 'PENDING'] }, { $gt: ['$discountRequest.requestedPercent', 0] }],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            discountApprovedOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$discountRequest.status', 'APPROVED'] }, 1, 0],
+              },
+            },
+            discountRejectedOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$discountRequest.status', 'REJECTED'] }, 1, 0],
+              },
+            },
+            unpaidCollectionOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'UNPAID'] }, 1, 0],
+              },
+            },
+            partialCollectionOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'PARTIALLY_PAID'] }, 1, 0],
+              },
+            },
+            paidCollectionOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'PAID_IN_FULL'] }, 1, 0],
+              },
+            },
+            refundedOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'REFUNDED'] }, 1, 0],
+              },
+            },
+            unpaidSupplierOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$supplierPaymentStatus', 'UNPAID_SUPPLIER'] }, 1, 0],
+              },
+            },
+            supplierPaidOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$supplierPaymentStatus', 'SUPPLIER_PAID'] }, 1, 0],
+              },
+            },
+            capitalCycleCompletedOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$supplierPaymentStatus', 'CAPITAL_CYCLE_COMPLETED'] }, 1, 0],
+              },
+            },
+            firstOrderAt: { $min: '$createdAt' },
+            lastOrderAt: { $max: '$createdAt' },
+          },
+        },
+      ]),
+      Order.aggregate([
+        {
+          $match: {
+            sellerId: sellerObjectId,
+            createdAt: { $gte: sixMonthsAgo },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' },
+            },
+            orderCount: { $sum: 1 },
+            totalSaleAmount: { $sum: '$totalSaleAmount' },
+            totalProfitAmount: { $sum: '$totalProfitAmount' },
+          },
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1 } },
+      ]),
+      Order.aggregate([
+        { $match: { sellerId: sellerObjectId } },
+        { $unwind: '$items' },
+        {
+          $group: {
+            _id: '$items.productId',
+            productName: { $first: '$items.productName' },
+            orderCount: { $sum: 1 },
+            totalWeightKg: { $sum: '$items.weightKg' },
+            totalSaleAmount: { $sum: '$items.lineSaleTotal' },
+            totalProfitAmount: { $sum: '$items.lineProfit' },
+          },
+        },
+        { $sort: { totalSaleAmount: -1, orderCount: -1 } },
+        { $limit: 8 },
+      ]),
+      Order.find({ sellerId: sellerObjectId }).sort({ createdAt: -1 }).limit(10).lean(),
+      PriceProfile.find({
+        type: 'SALE',
+        sellerId: sellerObjectId,
+        isActive: true,
+      })
+        .sort({ updatedAt: -1, effectiveFrom: -1 })
+        .limit(6)
+        .lean(),
+      PriceProfile.find({
+        type: 'SALE',
+        sellerId: sellerObjectId,
+      })
+        .sort({ createdAt: -1 })
+        .limit(8)
+        .lean(),
+    ]);
+
+    if (!sellerDoc) {
+      return DEFAULT_SELLER_DETAILS_PAGE_DATA;
+    }
+
+    const statsAgg = statsRaw[0] as
+      | {
+          totalOrders?: number;
+          totalSaleAmount?: number;
+          totalCostAmount?: number;
+          totalProfitAmount?: number;
+          totalWeightKg?: number;
+          pendingApprovalOrders?: number;
+          deliveringOrders?: number;
+          deliveredOrders?: number;
+          canceledOrders?: number;
+          discountRequestedOrders?: number;
+          discountApprovedOrders?: number;
+          discountRejectedOrders?: number;
+          unpaidCollectionOrders?: number;
+          partialCollectionOrders?: number;
+          paidCollectionOrders?: number;
+          refundedOrders?: number;
+          unpaidSupplierOrders?: number;
+          supplierPaidOrders?: number;
+          capitalCycleCompletedOrders?: number;
+          firstOrderAt?: Date | string | null;
+          lastOrderAt?: Date | string | null;
+        }
+      | undefined;
+
+    const totalOrders = Number(statsAgg?.totalOrders || 0);
+    const totalSaleAmount = Number(statsAgg?.totalSaleAmount || 0);
+    const firstOrderAt = statsAgg?.firstOrderAt ? toIsoString(statsAgg.firstOrderAt) : undefined;
+    const lastOrderAt = statsAgg?.lastOrderAt ? toIsoString(statsAgg.lastOrderAt) : undefined;
+    const daysActiveWithOrders =
+      firstOrderAt && lastOrderAt
+        ? Math.max(1, Math.floor((new Date(lastOrderAt).getTime() - new Date(firstOrderAt).getTime()) / (24 * 60 * 60 * 1000)) + 1)
+        : 0;
+
+    const stats: SellerDetailsStats = {
+      totalOrders,
+      totalSaleAmount,
+      totalCostAmount: Number(statsAgg?.totalCostAmount || 0),
+      totalProfitAmount: Number(statsAgg?.totalProfitAmount || 0),
+      totalWeightKg: Number(statsAgg?.totalWeightKg || 0),
+      averageOrderAmount: totalOrders > 0 ? totalSaleAmount / totalOrders : 0,
+      pendingApprovalOrders: Number(statsAgg?.pendingApprovalOrders || 0),
+      deliveringOrders: Number(statsAgg?.deliveringOrders || 0),
+      deliveredOrders: Number(statsAgg?.deliveredOrders || 0),
+      canceledOrders: Number(statsAgg?.canceledOrders || 0),
+      discountRequestedOrders: Number(statsAgg?.discountRequestedOrders || 0),
+      discountApprovedOrders: Number(statsAgg?.discountApprovedOrders || 0),
+      discountRejectedOrders: Number(statsAgg?.discountRejectedOrders || 0),
+      unpaidCollectionOrders: Number(statsAgg?.unpaidCollectionOrders || 0),
+      partialCollectionOrders: Number(statsAgg?.partialCollectionOrders || 0),
+      paidCollectionOrders: Number(statsAgg?.paidCollectionOrders || 0),
+      refundedOrders: Number(statsAgg?.refundedOrders || 0),
+      unpaidSupplierOrders: Number(statsAgg?.unpaidSupplierOrders || 0),
+      supplierPaidOrders: Number(statsAgg?.supplierPaidOrders || 0),
+      capitalCycleCompletedOrders: Number(statsAgg?.capitalCycleCompletedOrders || 0),
+      firstOrderAt,
+      lastOrderAt,
+      daysActiveWithOrders,
+    };
+
+    const monthlyMap = new Map<string, { orderCount: number; totalSaleAmount: number; totalProfitAmount: number }>(
+      monthlyRaw.map(item => {
+        const year = Number(item?._id?.year || 0);
+        const month = Number(item?._id?.month || 0);
+        return [
+          `${year}-${month}`,
+          {
+            orderCount: Number(item?.orderCount || 0),
+            totalSaleAmount: Number(item?.totalSaleAmount || 0),
+            totalProfitAmount: Number(item?.totalProfitAmount || 0),
+          },
+        ];
+      }),
+    );
+
+    const monthlyPerformance: SellerDetailsMonthlyPoint[] = Array.from({ length: 6 }, (_, index) => {
+      const monthDate = new Date(sixMonthsAgo);
+      monthDate.setMonth(sixMonthsAgo.getMonth() + index);
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth() + 1;
+      const bucket = monthlyMap.get(`${year}-${month}`);
+
+      return {
+        year,
+        month,
+        orderCount: bucket?.orderCount ?? 0,
+        totalSaleAmount: bucket?.totalSaleAmount ?? 0,
+        totalProfitAmount: bucket?.totalProfitAmount ?? 0,
+      };
+    });
+
+    return {
+      seller: toSellerView(sellerDoc),
+      stats,
+      monthlyPerformance,
+      topProducts: topProductsRaw.map(item => ({
+        productId: String(item?._id),
+        productName: item?.productName || 'Unknown product',
+        orderCount: Number(item?.orderCount || 0),
+        totalWeightKg: Number(item?.totalWeightKg || 0),
+        totalSaleAmount: Number(item?.totalSaleAmount || 0),
+        totalProfitAmount: Number(item?.totalProfitAmount || 0),
+      })),
+      recentOrders: recentOrderDocs.map(toOrderView),
+      activeSaleProfiles: activeProfilesDocs.map(toPriceProfileView),
+      latestSaleProfiles: latestProfilesDocs.map(toPriceProfileView),
+    } satisfies SellerDetailsPageData;
+  });
+}
+
+export async function getCustomerDetailsPageData(customerId: string) {
+  return runDataQuery('getCustomerDetailsPageData', DEFAULT_CUSTOMER_DETAILS_PAGE_DATA, async () => {
+    if (!Types.ObjectId.isValid(customerId)) {
+      return DEFAULT_CUSTOMER_DETAILS_PAGE_DATA;
+    }
+
+    const customerObjectId = new Types.ObjectId(customerId);
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+
+    const [customerDoc, statsRaw, monthlyRaw, topProductsRaw, sellerContributionsRaw, recentOrderDocs] = await Promise.all([
+      Customer.findById(customerObjectId).lean(),
+      Order.aggregate([
+        { $match: { customerId: customerObjectId } },
+        {
+          $group: {
+            _id: null,
+            totalOrders: { $sum: 1 },
+            totalSpentAmount: { $sum: '$totalSaleAmount' },
+            totalCostAmount: { $sum: '$totalCostAmount' },
+            totalProfitAmount: { $sum: '$totalProfitAmount' },
+            totalWeightKg: { $sum: '$totalWeightKg' },
+            pendingApprovalOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$approval.status', 'PENDING'] }, 1, 0],
+              },
+            },
+            deliveringOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$fulfillmentStatus', 'DELIVERING'] }, 1, 0],
+              },
+            },
+            deliveredOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$fulfillmentStatus', 'DELIVERED'] }, 1, 0],
+              },
+            },
+            canceledOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$fulfillmentStatus', 'CANCELED'] }, 1, 0],
+              },
+            },
+            unpaidOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'UNPAID'] }, 1, 0],
+              },
+            },
+            partiallyPaidOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'PARTIALLY_PAID'] }, 1, 0],
+              },
+            },
+            paidInFullOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'PAID_IN_FULL'] }, 1, 0],
+              },
+            },
+            refundedOrders: {
+              $sum: {
+                $cond: [{ $eq: ['$collectionStatus', 'REFUNDED'] }, 1, 0],
+              },
+            },
+            sellerIds: { $addToSet: '$sellerId' },
+            firstOrderAt: { $min: '$createdAt' },
+            lastOrderAt: { $max: '$createdAt' },
+          },
+        },
+      ]),
+      Order.aggregate([
+        {
+          $match: {
+            customerId: customerObjectId,
+            createdAt: { $gte: sixMonthsAgo },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' },
+            },
+            orderCount: { $sum: 1 },
+            totalSpentAmount: { $sum: '$totalSaleAmount' },
+            totalProfitAmount: { $sum: '$totalProfitAmount' },
+          },
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1 } },
+      ]),
+      Order.aggregate([
+        { $match: { customerId: customerObjectId } },
+        { $unwind: '$items' },
+        {
+          $group: {
+            _id: '$items.productId',
+            productName: { $first: '$items.productName' },
+            orderCount: { $sum: 1 },
+            totalWeightKg: { $sum: '$items.weightKg' },
+            totalSpentAmount: { $sum: '$items.lineSaleTotal' },
+            totalProfitAmount: { $sum: '$items.lineProfit' },
+          },
+        },
+        { $sort: { totalSpentAmount: -1, orderCount: -1 } },
+        { $limit: 8 },
+      ]),
+      Order.aggregate([
+        { $match: { customerId: customerObjectId } },
+        {
+          $group: {
+            _id: '$sellerId',
+            sellerName: { $first: '$sellerName' },
+            orderCount: { $sum: 1 },
+            totalSpentAmount: { $sum: '$totalSaleAmount' },
+            totalProfitAmount: { $sum: '$totalProfitAmount' },
+            lastOrderAt: { $max: '$createdAt' },
+          },
+        },
+        { $sort: { totalSpentAmount: -1, orderCount: -1 } },
+        { $limit: 8 },
+      ]),
+      Order.find({ customerId: customerObjectId }).sort({ createdAt: -1 }).limit(10).lean(),
+    ]);
+
+    if (!customerDoc) {
+      return DEFAULT_CUSTOMER_DETAILS_PAGE_DATA;
+    }
+
+    const statsAgg = statsRaw[0] as
+      | {
+          totalOrders?: number;
+          totalSpentAmount?: number;
+          totalCostAmount?: number;
+          totalProfitAmount?: number;
+          totalWeightKg?: number;
+          pendingApprovalOrders?: number;
+          deliveringOrders?: number;
+          deliveredOrders?: number;
+          canceledOrders?: number;
+          unpaidOrders?: number;
+          partiallyPaidOrders?: number;
+          paidInFullOrders?: number;
+          refundedOrders?: number;
+          sellerIds?: unknown[];
+          firstOrderAt?: Date | string | null;
+          lastOrderAt?: Date | string | null;
+        }
+      | undefined;
+
+    const totalOrders = Number(statsAgg?.totalOrders || 0);
+    const totalSpentAmount = Number(statsAgg?.totalSpentAmount || 0);
+    const firstOrderAt = statsAgg?.firstOrderAt ? toIsoString(statsAgg.firstOrderAt) : undefined;
+    const lastOrderAt = statsAgg?.lastOrderAt ? toIsoString(statsAgg.lastOrderAt) : undefined;
+    const daysActiveWithOrders =
+      firstOrderAt && lastOrderAt
+        ? Math.max(1, Math.floor((new Date(lastOrderAt).getTime() - new Date(firstOrderAt).getTime()) / (24 * 60 * 60 * 1000)) + 1)
+        : 0;
+
+    const stats: CustomerDetailsStats = {
+      totalOrders,
+      totalSpentAmount,
+      totalCostAmount: Number(statsAgg?.totalCostAmount || 0),
+      totalProfitAmount: Number(statsAgg?.totalProfitAmount || 0),
+      totalWeightKg: Number(statsAgg?.totalWeightKg || 0),
+      averageOrderAmount: totalOrders > 0 ? totalSpentAmount / totalOrders : 0,
+      pendingApprovalOrders: Number(statsAgg?.pendingApprovalOrders || 0),
+      deliveringOrders: Number(statsAgg?.deliveringOrders || 0),
+      deliveredOrders: Number(statsAgg?.deliveredOrders || 0),
+      canceledOrders: Number(statsAgg?.canceledOrders || 0),
+      unpaidOrders: Number(statsAgg?.unpaidOrders || 0),
+      partiallyPaidOrders: Number(statsAgg?.partiallyPaidOrders || 0),
+      paidInFullOrders: Number(statsAgg?.paidInFullOrders || 0),
+      refundedOrders: Number(statsAgg?.refundedOrders || 0),
+      uniqueSellerCount: Array.isArray(statsAgg?.sellerIds) ? statsAgg.sellerIds.length : 0,
+      firstOrderAt,
+      lastOrderAt,
+      daysActiveWithOrders,
+    };
+
+    const monthlyMap = new Map<string, { orderCount: number; totalSpentAmount: number; totalProfitAmount: number }>(
+      monthlyRaw.map(item => {
+        const year = Number(item?._id?.year || 0);
+        const month = Number(item?._id?.month || 0);
+        return [
+          `${year}-${month}`,
+          {
+            orderCount: Number(item?.orderCount || 0),
+            totalSpentAmount: Number(item?.totalSpentAmount || 0),
+            totalProfitAmount: Number(item?.totalProfitAmount || 0),
+          },
+        ];
+      }),
+    );
+
+    const monthlyPerformance: CustomerDetailsMonthlyPoint[] = Array.from({ length: 6 }, (_, index) => {
+      const monthDate = new Date(sixMonthsAgo);
+      monthDate.setMonth(sixMonthsAgo.getMonth() + index);
+      const year = monthDate.getFullYear();
+      const month = monthDate.getMonth() + 1;
+      const bucket = monthlyMap.get(`${year}-${month}`);
+
+      return {
+        year,
+        month,
+        orderCount: bucket?.orderCount ?? 0,
+        totalSpentAmount: bucket?.totalSpentAmount ?? 0,
+        totalProfitAmount: bucket?.totalProfitAmount ?? 0,
+      };
+    });
+
+    return {
+      customer: toCustomerView(customerDoc),
+      stats,
+      monthlyPerformance,
+      topProducts: topProductsRaw.map(item => ({
+        productId: String(item?._id),
+        productName: item?.productName || 'Unknown product',
+        orderCount: Number(item?.orderCount || 0),
+        totalWeightKg: Number(item?.totalWeightKg || 0),
+        totalSpentAmount: Number(item?.totalSpentAmount || 0),
+        totalProfitAmount: Number(item?.totalProfitAmount || 0),
+      })),
+      sellerContributions: sellerContributionsRaw.map(item => ({
+        sellerId: item?._id ? String(item._id) : '',
+        sellerName: item?.sellerName || 'Unknown seller',
+        orderCount: Number(item?.orderCount || 0),
+        totalSpentAmount: Number(item?.totalSpentAmount || 0),
+        totalProfitAmount: Number(item?.totalProfitAmount || 0),
+        lastOrderAt: item?.lastOrderAt ? toIsoString(item.lastOrderAt) : undefined,
+      })),
+      recentOrders: recentOrderDocs.map(toOrderView),
+    } satisfies CustomerDetailsPageData;
   });
 }
 
@@ -856,34 +1606,27 @@ const DEFAULT_DASHBOARD_STATS: DashboardStats = {
 };
 
 export async function getDashboardStats() {
-  return runDataQuery("getDashboardStats", DEFAULT_DASHBOARD_STATS, async () => {
-    const [
-      totalProducts,
-      activeProducts,
-      totalOrders,
-      deliveringOrders,
-      uncollectedOrders,
-      totals,
-    ] = await Promise.all([
+  return runDataQuery('getDashboardStats', DEFAULT_DASHBOARD_STATS, async () => {
+    const [totalProducts, activeProducts, totalOrders, deliveringOrders, uncollectedOrders, totals] = await Promise.all([
       Product.countDocuments(),
       Product.countDocuments({ isActive: true }),
       Order.countDocuments(),
       Order.countDocuments({
-        fulfillmentStatus: { $in: ["CONFIRMED", "PICKED", "DELIVERING"] },
+        fulfillmentStatus: { $in: ['CONFIRMED', 'PICKED', 'DELIVERING'] },
       }),
       Order.countDocuments({
-        collectionStatus: { $in: ["UNPAID", "PARTIALLY_PAID"] },
+        collectionStatus: { $in: ['UNPAID', 'PARTIALLY_PAID'] },
       }),
       Order.aggregate([
         {
           $group: {
             _id: null,
-            totalRevenue: { $sum: "$totalSaleAmount" },
-            totalCost: { $sum: "$totalCostAmount" },
-            totalProfit: { $sum: "$totalProfitAmount" },
+            totalRevenue: { $sum: '$totalSaleAmount' },
+            totalCost: { $sum: '$totalCostAmount' },
+            totalProfit: { $sum: '$totalProfitAmount' },
             unpaidOrders: {
               $sum: {
-                $cond: [{ $eq: ["$supplierPaymentStatus", "UNPAID_SUPPLIER"] }, 1, 0],
+                $cond: [{ $eq: ['$supplierPaymentStatus', 'UNPAID_SUPPLIER'] }, 1, 0],
               },
             },
           },
@@ -919,11 +1662,8 @@ const DEFAULT_PRICE_PROFILE_STATS: PriceProfileStats = {
   averageProductsPerProfile: 0,
 };
 
-export async function getPriceProfileStats(options?: {
-  type?: PriceProfileType;
-  sellerId?: string;
-}) {
-  return runDataQuery("getPriceProfileStats", DEFAULT_PRICE_PROFILE_STATS, async () => {
+export async function getPriceProfileStats(options?: { type?: PriceProfileType; sellerId?: string }) {
+  return runDataQuery('getPriceProfileStats', DEFAULT_PRICE_PROFILE_STATS, async () => {
     const match: Record<string, unknown> = {};
 
     if (options?.type) {
@@ -931,7 +1671,7 @@ export async function getPriceProfileStats(options?: {
     }
 
     if (options?.sellerId) {
-      if (options.type === "SALE") {
+      if (options.type === 'SALE') {
         const ownershipClause = buildSaleOwnershipClause(options.sellerId);
         if (!ownershipClause) {
           return DEFAULT_PRICE_PROFILE_STATS;
@@ -958,11 +1698,11 @@ export async function getPriceProfileStats(options?: {
                 totalProfiles: { $sum: 1 },
                 activeProfiles: {
                   $sum: {
-                    $cond: ["$isActive", 1, 0],
+                    $cond: ['$isActive', 1, 0],
                   },
                 },
                 totalItems: {
-                  $sum: { $size: { $ifNull: ["$items", []] } },
+                  $sum: { $size: { $ifNull: ['$items', []] } },
                 },
               },
             },
@@ -970,14 +1710,14 @@ export async function getPriceProfileStats(options?: {
           priced: [
             {
               $unwind: {
-                path: "$items",
+                path: '$items',
                 preserveNullAndEmptyArrays: false,
               },
             },
             {
               $group: {
                 _id: null,
-                productIds: { $addToSet: "$items.productId" },
+                productIds: { $addToSet: '$items.productId' },
               },
             },
           ],
@@ -997,8 +1737,7 @@ export async function getPriceProfileStats(options?: {
       totalProfiles,
       activeProfiles: summary.activeProfiles ?? 0,
       pricedProductsCount: Array.isArray(priced.productIds) ? priced.productIds.length : 0,
-      averageProductsPerProfile:
-        totalProfiles > 0 ? Math.round(((summary.totalItems ?? 0) / totalProfiles) * 10) / 10 : 0,
+      averageProductsPerProfile: totalProfiles > 0 ? Math.round(((summary.totalItems ?? 0) / totalProfiles) * 10) / 10 : 0,
     } satisfies PriceProfileStats;
   });
 }

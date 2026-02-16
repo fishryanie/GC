@@ -3,8 +3,14 @@
     "appName": "GC",
     "operations": "Operations",
     "searchPlaceholder": "Search...",
+    "loading": "Loading...",
     "notificationsAria": "Notifications",
     "languageSwitcherAria": "Switch language",
+    "themeSwitcherAria": "Switch theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSwitchToLight": "Switch to light mode",
+    "themeSwitchToDark": "Switch to dark mode",
     "settings": "Settings",
     "changePassword": "Change password",
     "roleAdmin": "Admin",
@@ -12,6 +18,31 @@
     "signOut": "Sign out",
     "vnd": "VND",
     "none": "None"
+  },
+  "notFoundPage": {
+    "code": "404",
+    "title": "Page not found",
+    "subtitle": "The endpoint may be incorrect or this page has been moved.",
+    "goDashboard": "Go to dashboard",
+    "goLogin": "Go to login",
+    "goHome": "Back to home"
+  },
+  "pwaPrompt": {
+    "title": "Install GC app",
+    "subtitle": "Add to home screen for full-screen app-like experience.",
+    "closeAria": "Close install prompt",
+    "installButton": "Install now",
+    "iosButton": "Use iOS steps",
+    "androidButton": "Use Android steps",
+    "skipButton": "Not now",
+    "installing": "Installing...",
+    "iosTitle": "Install on iPhone/iPad",
+    "iosStep1": "Open this page in Safari.",
+    "iosStep2": "Tap Share",
+    "iosStep3": "Select \"Add to Home Screen\".",
+    "androidTitle": "Install on Android",
+    "androidReady": "Tap install to add GC directly to your home screen.",
+    "androidManual": "Open browser menu (⋮) and choose \"Add to Home screen\" or \"Install app\"."
   },
   "shell": {
     "nav": {
@@ -40,6 +71,28 @@
     "supplierUnpaid": "Supplier unpaid: {count}",
     "latestOrders": "Latest orders",
     "viewAll": "View all",
+    "sellerPerformance": {
+      "title": "Seller performance overview",
+      "subtitle": "Track each seller's output, costs, and delivery progress.",
+      "sellers": "{count} sellers",
+      "orders": "{count} orders",
+      "totalCosts": "Costs: {amount}",
+      "topSeller": "Top: {name}",
+      "empty": "No seller data yet.",
+      "totalRow": "Total",
+      "columns": {
+        "seller": "Seller",
+        "orders": "Orders",
+        "revenue": "Revenue",
+        "cost": "Cost",
+        "profit": "Profit",
+        "avgOrder": "Avg order",
+        "pendingApproval": "Pending approval",
+        "delivery": "Delivery",
+        "deliveringValue": "Delivering {count}",
+        "deliveredValue": "Delivered {count}"
+      }
+    },
     "table": {
       "orderCode": "Order code",
       "buyer": "Buyer",
@@ -59,6 +112,7 @@
   "products": {
     "title": "Product inventory",
     "subtitle": "Manage products for GC sales",
+    "exportButton": "Export Excel",
     "addProduct": "Add product",
     "filters": {
       "all": "All",
@@ -86,6 +140,7 @@
   "priceProfilesPage": {
     "title": "Price profiles",
     "subtitle": "Manage cost and sale profile versions for billing and tracking.",
+    "exportButton": "Export Excel",
     "addButton": "Add new profile",
     "searchPlaceholder": "Search profile name...",
     "empty": "No profile matches the current filters.",
@@ -95,6 +150,10 @@
       "all": "All",
       "active": "Active",
       "inactive": "Paused"
+    },
+    "ownerFilter": {
+      "all": "All creators",
+      "system": "System"
     },
     "createCardTitle": "Create new price profile",
     "createCardHint": "This create panel stays fixed for faster input. The profile list on the right is scrollable.",
@@ -109,9 +168,30 @@
     },
     "emptyCost": "No cost price profiles yet.",
     "emptySale": "No sale price profiles yet.",
+    "emptySaleSystem": "No system suggested sale profiles yet.",
+    "emptySaleMine": "You have not created any sale profile yet.",
     "lanes": {
       "cost": "Cost Lane",
       "sale": "Sale Lane"
+    },
+    "saleSegments": {
+      "system": "System Suggested",
+      "mine": "My Sale Profiles"
+    },
+    "source": {
+      "systemSuggested": "System suggested",
+      "myProfile": "My profile",
+      "otherSeller": "Other seller"
+    },
+    "sourceLegendTitle": "PROFILE SOURCE LEGEND",
+    "sourceLegendSystemHint": "Default profiles suggested by admin/system.",
+    "sourceLegendMineHint": "Profiles created by your seller account.",
+    "sourceSystemHint": "Owner: System suggested profile.",
+    "ownerTag": {
+      "system": "System",
+      "mine": "Mine",
+      "seller": "Seller: {name}",
+      "sellerFallback": "Unknown"
     },
     "effectiveUpdated": "Effective: {effective} | Updated: {updated}",
     "switchAriaPause": "Pause profile",
@@ -123,6 +203,10 @@
     "productsCount": "{count} products",
     "noPrices": "No prices yet",
     "viewPriceTable": "View price table ({count} products)",
+    "showPriceTable": "Show product prices ({count})",
+    "hidePriceTable": "Hide product prices ({count})",
+    "moreProducts": "+{count} more",
+    "expandHint": "Tap the button above to open detailed product pricing.",
     "sellerOwner": "Seller: {name}",
     "table": {
       "product": "Product",
@@ -165,6 +249,7 @@
     "heroTag": "INVOICES",
     "heroTitle": "Invoice management board",
     "heroSubtitle": "Track collection, delivery status, and profit/loss by selected price profiles.",
+    "exportButton": "Export Excel",
     "cards": {
       "totalInvoices": "Total invoices",
       "systemTotal": "System total: {count}",
@@ -173,12 +258,82 @@
       "revenue": "Revenue",
       "profit": "Profit: {amount}"
     },
+    "charts": {
+      "empty": "No data",
+      "deliveryTrendTitle": "Delivery revenue trend",
+      "deliveryTrendHint": "Filtered orders grouped by delivery date (latest 8 points).",
+      "fulfillmentTitle": "Fulfillment distribution",
+      "fulfillmentHint": "Order count by fulfillment status.",
+      "collectionTitle": "Collection distribution",
+      "collectionHint": "Order count by collection status.",
+      "sellerBarsTitle": "Top sellers by bill amount",
+      "sellerBarsHint": "Highest billed sellers in current filter range.",
+      "productBarsTitle": "Top products by bill amount",
+      "productBarsHint": "Highest billed products in current filter range.",
+      "fulfillment": {
+        "pendingApproval": "Pending approval",
+        "confirmed": "Confirmed",
+        "picked": "Picked",
+        "delivering": "Delivering",
+        "delivered": "Delivered",
+        "canceled": "Canceled"
+      },
+      "collection": {
+        "unpaid": "Unpaid",
+        "partiallyPaid": "Partially paid",
+        "paidInFull": "Paid in full",
+        "refunded": "Refunded"
+      }
+    },
+    "sellerStats": {
+      "title": "Seller performance overview",
+      "subtitle": "Monitor seller output, costs, and delivery progress in one place.",
+      "sellers": "{count} sellers",
+      "orders": "{count} orders",
+      "totalCosts": "Costs: {amount}",
+      "topSeller": "Top: {name}",
+      "empty": "No seller data for the current filters.",
+      "totalRow": "Total",
+      "columns": {
+        "seller": "Seller",
+        "orders": "Orders",
+        "revenue": "Revenue",
+        "cost": "Cost",
+        "profit": "Profit",
+        "avgOrder": "Avg order",
+        "pendingApproval": "Pending approval",
+        "delivery": "Delivery",
+        "deliveringValue": "Delivering {count}",
+        "deliveredValue": "Delivered {count}"
+      }
+    },
     "searchPlaceholder": "Search by code, buyer, or product...",
+    "details": {
+      "open": "Details",
+      "close": "Close",
+      "title": "Order details",
+      "subtitle": "Created: {createdAt}",
+      "moreProducts": "+{count} more",
+      "labels": {
+        "bill": "Bill",
+        "baseSale": "Base sale",
+        "cost": "Cost",
+        "profit": "Profit",
+        "weightKg": "Weight (kg)",
+        "lineTotal": "Line total",
+        "saleProfile": "Sale profile",
+        "costProfile": "Cost profile"
+      }
+    },
     "emptyOrders": "No orders yet",
     "emptyFiltered": "No orders match the current filters",
     "table": {
       "invoiceCode": "Invoice code",
+      "invoiceSeller": "Invoice / Seller",
+      "timeline": "Created / Delivery",
+      "customerProducts": "Customer / Products",
       "buyer": "Buyer",
+      "sellerColumn": "Seller",
       "products": "Products",
       "profiles": "Profiles",
       "totals": "Totals",
@@ -188,6 +343,7 @@
       "costProfile": "Cost: {name}",
       "saleProfile": "Sale: {name}",
       "seller": "Seller: {name}",
+      "systemSeller": "System",
       "bill": "Bill: {amount}",
       "baseSale": "Base: {amount}",
       "discountPending": "Discount request {percent}% → {requested}",
@@ -218,10 +374,12 @@
     "orderStatus": "Order status",
     "capitalCycleStatus": "Capital cycle status",
     "collectionStatus": "Collection status",
+    "seller": "Seller",
     "deliveryYear": "Delivery year",
     "deliveryMonth": "Delivery month",
     "deliveryDay": "Delivery day",
     "all": "All",
+    "allSellers": "All sellers",
     "allYears": "All years",
     "allMonths": "All months",
     "monthLabel": "Month {value}",
@@ -232,7 +390,24 @@
   },
   "orderStatusForm": {
     "save": "Save",
-    "readOnlyHint": "Status update is available for admin after approval."
+    "saving": "Saving...",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "readOnlyHint": "Status update is available for admin after approval.",
+    "readOnlyCompact": "View only",
+    "editStatuses": "Update statuses",
+    "hideEditor": "Hide editor",
+    "editorHint": "Use this only when you need to adjust details.",
+    "collectionInline": "Collection: {status}",
+    "supplierInline": "Supplier: {status}",
+    "workflow": {
+      "NEEDS_APPROVAL": "Pending approval",
+      "CONFIRMED": "Confirmed",
+      "IN_DELIVERY": "In delivery flow",
+      "DELIVERED": "Delivered",
+      "COMPLETED": "Cycle completed",
+      "CANCELED": "Canceled"
+    }
   },
   "orderBuilder": {
     "submitPending": "Creating order...",
@@ -255,7 +430,13 @@
     "costProfileAutoHint": "The system automatically applies the active cost profile when you submit.",
     "saleProfileTitle": "Sale profile",
     "systemProfile": "System profile",
-    "sellerProfile": "Seller profile",
+    "sellerProfile": "My profile",
+    "saleProfileGroupSystem": "System suggested",
+    "saleProfileGroupMine": "My profiles",
+    "saleProfileGroupOthers": "Other seller profiles",
+    "saleProfileHintSystem": "Using a system suggested profile.",
+    "saleProfileHintMine": "Using your own seller profile.",
+    "saleProfileHintOther": "Using profile owned by seller: {name}.",
     "effective": "Effective: {date}",
     "pricedProducts": "{count} priced products",
     "approvalHint": "This order will stay pending until admin approval.",
@@ -310,6 +491,7 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "submit": "Sign in",
+    "submitPending": "Signing in...",
     "demoTitle": "Default account",
     "demoAdmin": "Admin: admin@gc.vn / Admin@123"
   },
@@ -325,6 +507,7 @@
   "customersPage": {
     "title": "Customers & Sellers",
     "subtitle": "Manage buyers and seller accounts for order tracking and access control.",
+    "exportButton": "Export Excel",
     "tabs": {
       "customers": "Customers ({count})",
       "sellers": "Sellers ({count})"
@@ -350,6 +533,7 @@
       "addButton": "Add customer",
       "empty": "No customer matches the current filters.",
       "editAria": "Edit customer",
+      "viewDetailsAria": "View overview for {name}",
       "pause": "Pause",
       "enable": "Enable",
       "stats": {
@@ -373,6 +557,49 @@
         "notes": "Notes",
         "submitCreate": "Create",
         "submitEdit": "Update"
+      },
+      "details": {
+        "backToCustomers": "Back to customers",
+        "tag": "Customer performance detail",
+        "cards": {
+          "totalOrders": "Total orders",
+          "totalSpent": "Total spent",
+          "totalWeight": "Total weight",
+          "profit": "Profit",
+          "unpaid": "Unpaid orders",
+          "activeDays": "{count} active days",
+          "avgOrder": "Avg order: {amount}",
+          "uniqueSellers": "{count} sellers served",
+          "pendingApproval": "Pending approval: {count}",
+          "partiallyPaid": "Partially paid: {count}"
+        },
+        "charts": {
+          "empty": "No data",
+          "spentTrendTitle": "Spending trend (6 months)",
+          "spentTrendHint": "Monthly customer bill amount.",
+          "profitTrendTitle": "Profit contribution trend (6 months)",
+          "profitTrendHint": "Monthly profit generated from this customer.",
+          "orderFlowHint": "Current order distribution by fulfillment.",
+          "collectionFlowHint": "Current order distribution by collection status.",
+          "sellerContributionHint": "Top seller contribution by billed amount.",
+          "topProductsHint": "Top purchased products by billed amount."
+        },
+        "orderFlowTitle": "Order flow snapshot",
+        "collectionFlowTitle": "Collection snapshot",
+        "sellerContributionTitle": "Top seller contributors",
+        "sellerContributionListTitle": "Seller contribution breakdown",
+        "emptySellerContributions": "No seller contribution data yet.",
+        "monthlyTitle": "Spending timeline (last 6 months)",
+        "monthlyHint": "Monthly order count and spend trend.",
+        "orders": "{count} orders",
+        "topProductsTitle": "Top purchased products",
+        "emptyProducts": "No product data yet.",
+        "products": "{count} products",
+        "recentOrdersTitle": "Recent orders of this customer",
+        "viewCustomerOrders": "View all customer orders",
+        "emptyOrders": "No orders from this customer yet.",
+        "firstOrderAt": "First order: {value}",
+        "lastOrderAt": "Last order: {value}"
       }
     },
     "sellers": {
@@ -380,6 +607,7 @@
       "empty": "No seller account matches the current filters.",
       "current": "You",
       "editAria": "Edit seller",
+      "viewDetailsAria": "View overview for {name}",
       "resetPasswordAria": "Reset seller password",
       "disable": "Disable",
       "enable": "Enable",
@@ -387,6 +615,51 @@
       "top30dItem": "{orders} orders • {amount}",
       "lastLogin": "Last login: {value}",
       "noLogin": "No login yet",
+      "details": {
+        "backToSellers": "Back to sellers",
+        "tag": "Seller performance detail",
+        "cards": {
+          "totalOrders": "Total orders",
+          "revenue": "Revenue",
+          "cost": "Cost",
+          "profit": "Profit",
+          "discountRequests": "Discount requests",
+          "activeDays": "{count} active days",
+          "avgOrder": "Avg order: {amount}",
+          "weight": "Weight: {value}",
+          "pendingApproval": "Pending approval: {count}",
+          "discountApproved": "Approved discounts: {count}"
+        },
+        "charts": {
+          "empty": "No data",
+          "revenueTrendTitle": "Revenue trend (6 months)",
+          "revenueTrendHint": "Monthly billed amount based on delivery records.",
+          "profitTrendTitle": "Profit trend (6 months)",
+          "profitTrendHint": "Monthly realized profit from seller orders.",
+          "orderFlowHint": "Current order distribution by fulfillment.",
+          "capitalFlowHint": "Current order distribution by capital cycle status.",
+          "collectionFlowHint": "Current order distribution by collection status.",
+          "topProductsHint": "Top billed products for this seller."
+        },
+        "orderFlowTitle": "Order flow snapshot",
+        "capitalFlowTitle": "Capital cycle snapshot",
+        "collectionFlowTitle": "Collection snapshot",
+        "monthlyTitle": "Performance timeline (last 6 months)",
+        "monthlyHint": "Revenue and profit trend by month.",
+        "orders": "{count} orders",
+        "topProductsTitle": "Top products by seller",
+        "emptyProducts": "No product performance yet.",
+        "saleProfilesTitle": "Seller sale profiles",
+        "emptyProfiles": "No sale profiles created by this seller.",
+        "activeProfiles": "Active profiles",
+        "noActiveProfiles": "No active profile.",
+        "latestProfiles": "Latest profile versions",
+        "profileUpdated": "Updated: {value}",
+        "products": "{count} products",
+        "recentOrdersTitle": "Recent orders from this seller",
+        "viewSellerOrders": "View all seller orders",
+        "emptyOrders": "No orders from this seller yet."
+      },
       "stats": {
         "total": "Total accounts",
         "enabled": "Enabled accounts",

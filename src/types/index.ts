@@ -5,13 +5,13 @@ import type {
   OrderFulfillmentStatus,
   PriceProfileType,
   SupplierPaymentStatus,
-} from "@/lib/constants";
+} from 'lib/constants';
 
 export type ProductView = {
   id: string;
   name: string;
   description?: string;
-  unit: "kg";
+  unit: 'kg';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -114,7 +114,7 @@ export type CustomerView = {
   updatedAt: string;
 };
 
-export type SellerRole = "ADMIN" | "SELLER";
+export type SellerRole = 'ADMIN' | 'SELLER';
 
 export type SellerView = {
   id: string;

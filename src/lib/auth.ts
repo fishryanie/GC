@@ -1,16 +1,16 @@
-import "server-only";
+import 'server-only';
 
-import { createHash, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Seller, type SellerRole } from "@/models/seller";
-import { SellerSession } from "@/models/seller-session";
+import { connectToDatabase } from 'lib/mongodb';
+import { Seller, type SellerRole } from 'models/seller';
+import { SellerSession } from 'models/seller-session';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
 
 const scryptAsync = promisify(scrypt);
 
-export const SESSION_COOKIE_NAME = "CHAFLOW_SESSION";
+export const SESSION_COOKIE_NAME = 'CHAFLOW_SESSION';
 
 const SESSION_DURATION_DAYS = 14;
 const SCRYPT_KEY_LENGTH = 64;
@@ -24,14 +24,7 @@ export type AuthSeller = {
   mustChangePassword: boolean;
 };
 
-function toAuthSeller(doc: {
-  _id: unknown;
-  name: string;
-  email: string;
-  role: SellerRole;
-  isEnabled: boolean;
-  mustChangePassword: boolean;
-}): AuthSeller {
+function toAuthSeller(doc: { _id: unknown; name: string; email: string; role: SellerRole; isEnabled: boolean; mustChangePassword: boolean }): AuthSeller {
   return {
     id: String(doc._id),
     name: doc.name,
@@ -43,7 +36,7 @@ function toAuthSeller(doc: {
 }
 
 function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
+  return createHash('sha256').update(token).digest('hex');
 }
 
 function isPasswordStrong(password: string) {
@@ -56,21 +49,21 @@ export function normalizeEmail(input: string) {
 
 export async function hashPassword(plainText: string) {
   if (!isPasswordStrong(plainText)) {
-    throw new Error("Password must be at least 8 characters.");
+    throw new Error('Password must be at least 8 characters.');
   }
 
-  const salt = randomBytes(16).toString("hex");
+  const salt = randomBytes(16).toString('hex');
   const derived = (await scryptAsync(plainText, salt, SCRYPT_KEY_LENGTH)) as Buffer;
-  return `scrypt$${salt}$${derived.toString("hex")}`;
+  return `scrypt$${salt}$${derived.toString('hex')}`;
 }
 
 export async function verifyPassword(plainText: string, storedHash: string) {
-  const [algorithm, salt, keyHex] = storedHash.split("$");
-  if (algorithm !== "scrypt" || !salt || !keyHex) {
+  const [algorithm, salt, keyHex] = storedHash.split('$');
+  if (algorithm !== 'scrypt' || !salt || !keyHex) {
     return false;
   }
 
-  const expected = Buffer.from(keyHex, "hex");
+  const expected = Buffer.from(keyHex, 'hex');
   const actual = (await scryptAsync(plainText, salt, expected.length)) as Buffer;
 
   if (actual.length !== expected.length) {
@@ -80,21 +73,18 @@ export async function verifyPassword(plainText: string, storedHash: string) {
   return timingSafeEqual(actual, expected);
 }
 
-export async function createSessionForSeller(
-  sellerId: string,
-  context?: { userAgent?: string; ipAddress?: string },
-) {
+export async function createSessionForSeller(sellerId: string, context?: { userAgent?: string; ipAddress?: string }) {
   await connectToDatabase();
 
-  const rawToken = randomBytes(32).toString("base64url");
+  const rawToken = randomBytes(32).toString('base64url');
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000);
 
   await SellerSession.create({
     sellerId,
     tokenHash,
-    userAgent: context?.userAgent ?? "",
-    ipAddress: context?.ipAddress ?? "",
+    userAgent: context?.userAgent ?? '',
+    ipAddress: context?.ipAddress ?? '',
     expiresAt,
     lastSeenAt: new Date(),
   });
@@ -102,9 +92,9 @@ export async function createSessionForSeller(
   const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, rawToken, {
     httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
     expires: expiresAt,
   });
 }
@@ -156,7 +146,7 @@ export async function getAuthSession() {
 export async function requireAuthSession() {
   const session = await getAuthSession();
   if (!session) {
-    redirect("/login");
+    redirect('/login');
   }
 
   return session;
@@ -165,8 +155,8 @@ export async function requireAuthSession() {
 export async function requireAdminSession() {
   const session = await requireAuthSession();
 
-  if (session.seller.role !== "ADMIN") {
-    throw new Error("Only admin can perform this action.");
+  if (session.seller.role !== 'ADMIN') {
+    throw new Error('Only admin can perform this action.');
   }
 
   return session;
@@ -175,20 +165,30 @@ export async function requireAdminSession() {
 export async function ensureDefaultAdminAccount() {
   await connectToDatabase();
 
-  const hasAdmin = await Seller.exists({ role: "ADMIN" });
-  if (hasAdmin) {
+  const email = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@gc.vn');
+  const name = (process.env.ADMIN_NAME || 'GC Admin').trim();
+  const password = process.env.ADMIN_PASSWORD || 'Admin@123';
+  const existingByEmail = await Seller.findOne({ email }).select('_id role isEnabled').lean();
+
+  if (existingByEmail) {
+    if (existingByEmail.role !== 'ADMIN' || !existingByEmail.isEnabled) {
+      await Seller.findByIdAndUpdate(existingByEmail._id, {
+        $set: {
+          role: 'ADMIN',
+          isEnabled: true,
+        },
+      });
+    }
+
     return;
   }
 
-  const email = normalizeEmail(process.env.ADMIN_EMAIL || "admin@gc.vn");
-  const name = (process.env.ADMIN_NAME || "GC Admin").trim();
-  const password = process.env.ADMIN_PASSWORD || "Admin@123";
   const passwordHash = await hashPassword(password);
 
   await Seller.create({
     name,
     email,
-    role: "ADMIN",
+    role: 'ADMIN',
     passwordHash,
     isEnabled: true,
     mustChangePassword: false,

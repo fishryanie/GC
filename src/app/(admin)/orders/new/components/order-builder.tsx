@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "antd";
 import { useMemo, useState, type FormEvent } from "react";
 import {
   Trash2,
@@ -49,6 +50,10 @@ function createLine(productId: string): DraftLine {
 
 function getPriceMap(profile: PriceProfileView | undefined) {
   return new Map(profile?.items.map((item) => [item.productId, item.pricePerKg]) ?? []);
+}
+
+function isSystemSaleProfile(profile: PriceProfileView) {
+  return !profile.sellerId;
 }
 
 function SubmitButton({ disabled, pendingLabel, idleLabel }: { disabled: boolean; pendingLabel: string; idleLabel: string }) {
@@ -109,7 +114,7 @@ export function OrderBuilder({
     [saleProfiles, saleProfileId],
   );
   const selectedSaleProfileIsSystem = useMemo(
-    () => !selectedSaleProfile?.sellerId,
+    () => (selectedSaleProfile ? isSystemSaleProfile(selectedSaleProfile) : false),
     [selectedSaleProfile],
   );
   const canRequestDiscount = !canViewCost;
@@ -134,6 +139,47 @@ export function OrderBuilder({
   );
 
   const productMap = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+  const productSelectOptions = useMemo(
+    () =>
+      products.map((product) => ({
+        value: product.id,
+        label: product.name,
+      })),
+    [products],
+  );
+  const customerSelectOptions = useMemo(
+    () =>
+      customerOptions.map((customer) => ({
+        value: customer.id,
+        label: `${customer.name} - ${customer.phone}`,
+      })),
+    [customerOptions],
+  );
+  const saleProfileSelectOptions = useMemo(
+    () =>
+      saleProfiles.map((profile) => {
+        const systemOwned = isSystemSaleProfile(profile);
+
+        return {
+          value: profile.id,
+          label: (
+            <div className="flex items-center justify-between gap-2">
+              <span className="truncate">{profile.name}</span>
+              <span
+                className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.04em] ${
+                  systemOwned
+                    ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-200"
+                    : "border-sky-500/35 bg-sky-500/10 text-sky-200"
+                }`}
+              >
+                {systemOwned ? t("systemProfile") : t("sellerProfile")}
+              </span>
+            </div>
+          ),
+        };
+      }),
+    [saleProfiles, t],
+  );
 
   const calculatedRows = useMemo(() => {
     const summary = parsedLines.reduce(
@@ -360,18 +406,14 @@ export function OrderBuilder({
             <label className="space-y-1.5 md:col-span-2">
               <span className="text-sm text-foreground-secondary">{t("customer")}</span>
               <div className="flex gap-2">
-                <select
+                <Select
                   value={customerId}
-                  onChange={(event) => setCustomerId(event.target.value)}
-                  className="focus-ring h-10 w-full rounded-lg border border-border bg-background-tertiary px-3 text-sm text-foreground"
-                >
-                  {customerOptions.length === 0 ? <option value="">{t("customerEmpty")}</option> : null}
-                  {customerOptions.map((customer) => (
-                    <option key={customer.id} value={customer.id}>
-                      {customer.name} - {customer.phone}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setCustomerId(String(value))}
+                  disabled={customerOptions.length === 0}
+                  placeholder={t("customerEmpty")}
+                  className="w-full"
+                  options={customerSelectOptions}
+                />
                 <button
                   type="button"
                   onClick={() => setIsCustomerModalOpen(true)}
@@ -427,17 +469,12 @@ export function OrderBuilder({
 
             <article className="rounded-lg border border-border bg-background-tertiary p-3">
               <p className="mb-2 mt-0 text-sm font-medium text-foreground">{t("saleProfileTitle")}</p>
-              <select
+              <Select
                 value={saleProfileId}
-                onChange={(event) => setSaleProfileId(event.target.value)}
-                className="focus-ring h-10 w-full rounded-lg border border-border bg-background-secondary px-3 text-sm text-foreground"
-              >
-                {saleProfiles.map((profile) => (
-                  <option key={profile.id} value={profile.id}>
-                    {profile.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setSaleProfileId(String(value))}
+                className="w-full"
+                options={saleProfileSelectOptions}
+              />
               {selectedSaleProfile ? (
                 <p className="mb-0 mt-2 text-xs text-foreground-secondary">
                   {t("effective", { date: formatDate(selectedSaleProfile.effectiveFrom) })} •{" "}
@@ -529,155 +566,180 @@ export function OrderBuilder({
         </section>
       ) : null}
 
-      <section className="rounded-xl border border-border bg-background-secondary p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="m-0 text-sm font-semibold text-foreground">{t("cartTitle")}</p>
-          <button
-            type="button"
-            onClick={() => setLines((previous) => [...previous, createLine(products[0].id)])}
-            className="inline-flex h-9 items-center gap-1 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            {t("addProduct")}
-          </button>
-        </div>
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <section className="rounded-xl border border-border bg-background-secondary p-4 2xl:sticky 2xl:top-[84px] 2xl:self-start">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="m-0 text-sm font-semibold text-foreground">{t("cartTitle")}</p>
+            <button
+              type="button"
+              onClick={() => setLines((previous) => [...previous, createLine(products[0].id)])}
+              className="inline-flex h-9 items-center gap-1 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground"
+            >
+              <Plus className="h-4 w-4" />
+              {t("addProduct")}
+            </button>
+          </div>
 
-        <div className="space-y-2">
-          {lines.map((line, index) => (
-            <div key={line.id} className="grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_48px]">
-              <select
-                value={line.productId}
-                onChange={(event) => {
-                  const nextProductId = event.target.value;
-                  setLines((previous) =>
-                    previous.map((item) =>
-                      item.id === line.id ? { ...item, productId: nextProductId } : item,
-                    ),
-                  );
-                }}
-                className="focus-ring h-10 rounded-lg border border-border bg-background-tertiary px-3 text-sm text-foreground"
-              >
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.name}
-                  </option>
-                ))}
-              </select>
-
-              <div className="flex h-10 items-center overflow-hidden rounded-lg border border-border bg-background-tertiary">
-                <input
-                  type="number"
-                  min={0.01}
-                  step={0.01}
-                  value={line.weightKg}
-                  onChange={(event) => {
-                    const nextWeight = Number(event.target.value || 0);
+          <div className="space-y-2">
+            {lines.map((line, index) => (
+              <div key={line.id} className="grid gap-2 md:grid-cols-[minmax(0,1fr)_180px_48px]">
+                <Select
+                  value={line.productId}
+                  onChange={(value) => {
+                    const nextProductId = String(value);
                     setLines((previous) =>
                       previous.map((item) =>
-                        item.id === line.id ? { ...item, weightKg: nextWeight } : item,
+                        item.id === line.id ? { ...item, productId: nextProductId } : item,
                       ),
                     );
                   }}
-                  className="focus-ring h-full w-full bg-transparent px-3 text-sm text-foreground"
+                  className="w-full"
+                  options={productSelectOptions}
                 />
-                <span className="px-3 text-xs text-foreground-muted">kg</span>
+
+                <div className="flex h-10 items-center overflow-hidden rounded-lg border border-border bg-background-tertiary">
+                  <input
+                    type="number"
+                    min={0.01}
+                    step={0.01}
+                    value={line.weightKg}
+                    onChange={(event) => {
+                      const nextWeight = Number(event.target.value || 0);
+                      setLines((previous) =>
+                        previous.map((item) =>
+                          item.id === line.id ? { ...item, weightKg: nextWeight } : item,
+                        ),
+                      );
+                    }}
+                    className="focus-ring h-full w-full bg-transparent px-3 text-sm text-foreground"
+                  />
+                  <span className="px-3 text-xs text-foreground-muted">kg</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (lines.length === 1) {
+                      return;
+                    }
+                    setLines((previous) => previous.filter((item) => item.id !== line.id));
+                  }}
+                  disabled={lines.length === 1 && index === 0}
+                  className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background-tertiary text-foreground-secondary transition-colors hover:border-red-500/40 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label={t("removeLineAria")}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
+            ))}
+          </div>
+        </section>
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (lines.length === 1) {
-                    return;
-                  }
-                  setLines((previous) => previous.filter((item) => item.id !== line.id));
-                }}
-                disabled={lines.length === 1 && index === 0}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-border bg-background-tertiary text-foreground-secondary transition-colors hover:border-red-500/40 hover:text-red-400 disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label={t("removeLineAria")}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
+        <section className="rounded-xl border border-border bg-background-secondary p-4">
+          <p className="mb-3 mt-0 text-sm font-semibold text-foreground">{t("summaryTitle")}</p>
 
-      <section className="rounded-xl border border-border bg-background-secondary p-4">
-        <p className="mb-3 mt-0 text-sm font-semibold text-foreground">{t("summaryTitle")}</p>
+          <div className="mb-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <article className="rounded-lg border border-border bg-background-tertiary px-3 py-2">
+              <p className="m-0 text-xs text-foreground-muted">{t("table.kg")}</p>
+              <p className="m-0 mt-1 text-sm font-semibold text-foreground">{formatKg(calculatedRows.totalWeight)}</p>
+            </article>
+            <article className="rounded-lg border border-border bg-background-tertiary px-3 py-2">
+              <p className="m-0 text-xs text-foreground-muted">{t("table.saleTotal")}</p>
+              <p className="m-0 mt-1 text-sm font-semibold text-foreground">{formatCurrency(calculatedRows.totalSale)}</p>
+            </article>
+            {canViewCost ? (
+              <>
+                <article className="rounded-lg border border-border bg-background-tertiary px-3 py-2">
+                  <p className="m-0 text-xs text-foreground-muted">{t("table.costTotal")}</p>
+                  <p className="m-0 mt-1 text-sm font-semibold text-foreground">{formatCurrency(calculatedRows.totalCost)}</p>
+                </article>
+                <article className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-2">
+                  <p className="m-0 text-xs text-emerald-200">{t("table.profit")}</p>
+                  <p className="m-0 mt-1 text-sm font-semibold text-emerald-100">{formatCurrency(calculatedRows.totalProfit)}</p>
+                </article>
+              </>
+            ) : hasDiscountRequest ? (
+              <article className="rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3 py-2 sm:col-span-2">
+                <p className="m-0 text-xs text-emerald-200">{t("discountRequestedSale")}</p>
+                <p className="m-0 mt-1 text-sm font-semibold text-emerald-100">{formatCurrency(requestedSalePreview)}</p>
+              </article>
+            ) : null}
+          </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[780px] border-collapse">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.product")}</th>
-                <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.kg")}</th>
-                <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.salePerKg")}</th>
-                <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.saleTotal")}</th>
-                {canViewCost ? (
-                  <>
-                    <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.costPerKg")}</th>
-                    <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.costTotal")}</th>
-                    <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.profit")}</th>
-                  </>
-                ) : null}
-              </tr>
-            </thead>
-            <tbody>
-              {calculatedRows.rows.map((row) => (
-                <tr key={row.id} className="border-b border-border/70">
-                  <td className="px-2 py-2 text-sm text-foreground">{row.productName}</td>
-                  <td className="px-2 py-2 text-sm text-foreground-secondary">{formatKg(row.weightKg)}</td>
-                  <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.salePrice)}</td>
-                  <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.lineSale)}</td>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className={`w-full border-collapse ${canViewCost ? "min-w-[760px]" : "min-w-[560px]"}`}>
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.product")}</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.kg")}</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.salePerKg")}</th>
+                  <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.saleTotal")}</th>
                   {canViewCost ? (
                     <>
-                      <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.costPrice)}</td>
-                      <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.lineCost)}</td>
-                      <td className="px-2 py-2 text-sm text-emerald-300">{formatCurrency(row.lineSale - row.lineCost)}</td>
+                      <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.costPerKg")}</th>
+                      <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.costTotal")}</th>
+                      <th className="px-2 py-2 text-left text-sm font-semibold text-foreground">{t("table.profit")}</th>
                     </>
                   ) : null}
                 </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td className="px-2 py-2 text-sm font-semibold text-foreground">{t("table.grandTotal")}</td>
-                <td className="px-2 py-2 text-sm font-semibold text-foreground">{formatKg(calculatedRows.totalWeight)}</td>
-                <td className="px-2 py-2 text-sm text-foreground-muted">-</td>
-                <td className="px-2 py-2 text-sm font-semibold text-foreground">{formatCurrency(calculatedRows.totalSale)}</td>
-                {canViewCost ? (
-                  <>
-                    <td className="px-2 py-2 text-sm text-foreground-muted">-</td>
-                    <td className="px-2 py-2 text-sm font-semibold text-foreground">{formatCurrency(calculatedRows.totalCost)}</td>
-                    <td className="px-2 py-2 text-sm font-semibold text-emerald-300">{formatCurrency(calculatedRows.totalProfit)}</td>
-                  </>
-                ) : null}
-              </tr>
-              {hasDiscountRequest ? (
+              </thead>
+              <tbody>
+                {calculatedRows.rows.map((row) => (
+                  <tr key={row.id} className="border-b border-border/70">
+                    <td className="px-2 py-2 text-sm text-foreground">{row.productName}</td>
+                    <td className="px-2 py-2 text-sm text-foreground-secondary">{formatKg(row.weightKg)}</td>
+                    <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.salePrice)}</td>
+                    <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.lineSale)}</td>
+                    {canViewCost ? (
+                      <>
+                        <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.costPrice)}</td>
+                        <td className="px-2 py-2 text-sm text-foreground-secondary">{formatCurrency(row.lineCost)}</td>
+                        <td className="px-2 py-2 text-sm text-emerald-300">{formatCurrency(row.lineSale - row.lineCost)}</td>
+                      </>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
                 <tr>
-                  <td className="px-2 pb-2 pt-0 text-xs text-foreground-secondary">
-                    {t("discountRequestedSale")}
-                  </td>
-                  <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
-                  <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
-                  <td className="px-2 pb-2 pt-0 text-xs font-semibold text-emerald-300">
-                    {formatCurrency(requestedSalePreview)}
-                  </td>
+                  <td className="px-2 py-2 text-sm font-semibold text-foreground">{t("table.grandTotal")}</td>
+                  <td className="px-2 py-2 text-sm font-semibold text-foreground">{formatKg(calculatedRows.totalWeight)}</td>
+                  <td className="px-2 py-2 text-sm text-foreground-muted">-</td>
+                  <td className="px-2 py-2 text-sm font-semibold text-foreground">{formatCurrency(calculatedRows.totalSale)}</td>
                   {canViewCost ? (
                     <>
-                      <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
-                      <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
-                      <td className="px-2 pb-2 pt-0 text-xs font-semibold text-emerald-300">
-                        {formatCurrency(requestedSalePreview - calculatedRows.totalCost)}
-                      </td>
+                      <td className="px-2 py-2 text-sm text-foreground-muted">-</td>
+                      <td className="px-2 py-2 text-sm font-semibold text-foreground">{formatCurrency(calculatedRows.totalCost)}</td>
+                      <td className="px-2 py-2 text-sm font-semibold text-emerald-300">{formatCurrency(calculatedRows.totalProfit)}</td>
                     </>
                   ) : null}
                 </tr>
-              ) : null}
-            </tfoot>
-          </table>
-        </div>
-      </section>
+                {hasDiscountRequest ? (
+                  <tr>
+                    <td className="px-2 pb-2 pt-0 text-xs text-foreground-secondary">
+                      {t("discountRequestedSale")}
+                    </td>
+                    <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
+                    <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
+                    <td className="px-2 pb-2 pt-0 text-xs font-semibold text-emerald-300">
+                      {formatCurrency(requestedSalePreview)}
+                    </td>
+                    {canViewCost ? (
+                      <>
+                        <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
+                        <td className="px-2 pb-2 pt-0 text-xs text-foreground-muted">-</td>
+                        <td className="px-2 pb-2 pt-0 text-xs font-semibold text-emerald-300">
+                          {formatCurrency(requestedSalePreview - calculatedRows.totalCost)}
+                        </td>
+                      </>
+                    ) : null}
+                  </tr>
+                ) : null}
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      </div>
 
       {isCustomerModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-4">

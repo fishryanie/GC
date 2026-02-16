@@ -1,41 +1,23 @@
-"use server";
+'use server';
 
-import { revalidatePath } from "next/cache";
-import { Types } from "mongoose";
-import {
-  COLLECTION_STATUSES,
-  ORDER_FULFILLMENT_STATUSES,
-  SUPPLIER_PAYMENT_STATUSES,
-} from "@/lib/constants";
-import {
-  requireAdminSession,
-  requireAuthSession,
-} from "@/lib/auth";
-import { connectToDatabase } from "@/lib/mongodb";
-import { parseNumber } from "@/lib/format";
-import { Customer } from "@/models/customer";
-import { Order } from "@/models/order";
-import { PriceProfile } from "@/models/price-profile";
-import { Product } from "@/models/product";
-import {
-  formatMessage,
-  generateOrderCode,
-  getActionMessages,
-  handleActionError,
-  redirectWithMessage,
-} from "@/lib/action-helpers";
+import { formatMessage, generateOrderCode, getActionMessages, handleActionError, redirectWithMessage } from 'lib/action-helpers';
+import { requireAdminSession, requireAuthSession } from 'lib/auth';
+import { COLLECTION_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATUSES } from 'lib/constants';
+import { parseNumber } from 'lib/format';
+import { connectToDatabase } from 'lib/mongodb';
+import { Customer } from 'models/customer';
+import { Order } from 'models/order';
+import { PriceProfile } from 'models/price-profile';
+import { Product } from 'models/product';
+import { Types } from 'mongoose';
+import { revalidatePath } from 'next/cache';
 
 type OrderInputLine = {
   productId: string;
   weightKg: number;
 };
 
-const ORDER_APPROVAL_DECISIONS = [
-  "APPROVE_ORDER",
-  "APPROVE_WITH_DISCOUNT",
-  "APPROVE_WITHOUT_DISCOUNT",
-  "REJECT_ORDER",
-] as const;
+const ORDER_APPROVAL_DECISIONS = ['APPROVE_ORDER', 'APPROVE_WITH_DISCOUNT', 'APPROVE_WITHOUT_DISCOUNT', 'REJECT_ORDER'] as const;
 
 type OrderApprovalDecision = (typeof ORDER_APPROVAL_DECISIONS)[number];
 
@@ -45,12 +27,12 @@ export async function createOrderAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const customerId = String(formData.get("customerId") || "").trim();
-    const deliveryDate = String(formData.get("deliveryDate") || "").trim();
-    const saleProfileId = String(formData.get("saleProfileId") || "").trim();
-    const itemsJson = String(formData.get("itemsJson") || "[]");
-    const requestedDiscountPercentRaw = parseNumber(formData.get("requestedDiscountPercent"));
-    const discountReason = String(formData.get("discountReason") || "").trim();
+    const customerId = String(formData.get('customerId') || '').trim();
+    const deliveryDate = String(formData.get('deliveryDate') || '').trim();
+    const saleProfileId = String(formData.get('saleProfileId') || '').trim();
+    const itemsJson = String(formData.get('itemsJson') || '[]');
+    const requestedDiscountPercentRaw = parseNumber(formData.get('requestedDiscountPercent'));
+    const discountReason = String(formData.get('discountReason') || '').trim();
     const requestedDiscountPercent = Number(requestedDiscountPercentRaw.toFixed(2));
 
     if (!Number.isFinite(requestedDiscountPercent) || requestedDiscountPercent < 0 || requestedDiscountPercent > 90) {
@@ -113,25 +95,21 @@ export async function createOrderAction(formData: FormData) {
       throw new Error(m.cartWeightInvalid);
     }
 
-    const productIds = normalizedItems.map((item) => new Types.ObjectId(item.productId));
+    const productIds = normalizedItems.map(item => new Types.ObjectId(item.productId));
     const saleProfileQuery: Record<string, unknown> = {
       _id: new Types.ObjectId(saleProfileId),
-      type: "SALE",
+      type: 'SALE',
       isActive: true,
     };
 
-    if (session.seller.role !== "ADMIN") {
-      saleProfileQuery.$or = [
-        { sellerId: new Types.ObjectId(session.seller.id) },
-        { sellerId: { $exists: false } },
-        { sellerId: null },
-      ];
+    if (session.seller.role !== 'ADMIN') {
+      saleProfileQuery.$or = [{ sellerId: new Types.ObjectId(session.seller.id) }, { sellerId: { $exists: false } }, { sellerId: null }];
     }
 
     const [products, costProfile, saleProfile] = await Promise.all([
       Product.find({ _id: { $in: productIds } }).lean(),
       PriceProfile.findOne({
-        type: "COST",
+        type: 'COST',
         isActive: true,
       })
         .sort({ effectiveFrom: -1, createdAt: -1 })
@@ -139,32 +117,28 @@ export async function createOrderAction(formData: FormData) {
       PriceProfile.findOne(saleProfileQuery).lean(),
     ]);
 
-    if (!costProfile || costProfile.type !== "COST") {
+    if (!costProfile || costProfile.type !== 'COST') {
       throw new Error(m.invalidCostProfile);
     }
 
-    if (!saleProfile || saleProfile.type !== "SALE") {
+    if (!saleProfile || saleProfile.type !== 'SALE') {
       throw new Error(m.invalidSaleProfile);
     }
 
     const isSystemSaleProfile = !saleProfile.sellerId;
-    if (
-      session.seller.role !== "ADMIN" &&
-      requestedDiscountPercent > 0 &&
-      !isSystemSaleProfile
-    ) {
+    if (session.seller.role !== 'ADMIN' && requestedDiscountPercent > 0 && !isSystemSaleProfile) {
       throw new Error(m.discountRequiresSystemProfile);
     }
 
-    const productMap = new Map(products.map((item) => [String(item._id), item]));
-    const costPriceMap = new Map(costProfile.items.map((item) => [String(item.productId), item.pricePerKg]));
-    const salePriceMap = new Map(saleProfile.items.map((item) => [String(item.productId), item.pricePerKg]));
+    const productMap = new Map(products.map(item => [String(item._id), item]));
+    const costPriceMap = new Map(costProfile.items.map(item => [String(item.productId), item.pricePerKg]));
+    const salePriceMap = new Map(saleProfile.items.map(item => [String(item.productId), item.pricePerKg]));
 
     let totalWeightKg = 0;
     let totalCostAmount = 0;
     let baseSaleAmount = 0;
 
-    const baseLines = normalizedItems.map((item) => {
+    const baseLines = normalizedItems.map(item => {
       const product = productMap.get(item.productId);
       const costPricePerKg = costPriceMap.get(item.productId);
       const salePricePerKg = salePriceMap.get(item.productId);
@@ -200,22 +174,15 @@ export async function createOrderAction(formData: FormData) {
 
     const code = await generateOrderCode();
     const orderTime = new Date();
-    const requestedSaleAmount = Math.max(
-      0,
-      Math.round(baseSaleAmount * (1 - requestedDiscountPercent / 100)),
-    );
-    const requestedDiscountAmount = Math.max(
-      0,
-      Math.round(baseSaleAmount - requestedSaleAmount),
-    );
-    const requiresAdminApproval = session.seller.role !== "ADMIN";
-    const shouldApplyDiscountImmediately =
-      session.seller.role === "ADMIN" && requestedDiscountPercent > 0;
+    const requestedSaleAmount = Math.max(0, Math.round(baseSaleAmount * (1 - requestedDiscountPercent / 100)));
+    const requestedDiscountAmount = Math.max(0, Math.round(baseSaleAmount - requestedSaleAmount));
+    const requiresAdminApproval = session.seller.role !== 'ADMIN';
+    const shouldApplyDiscountImmediately = session.seller.role === 'ADMIN' && requestedDiscountPercent > 0;
 
     const finalLines = shouldApplyDiscountImmediately
       ? (() => {
           const ratio = baseSaleAmount > 0 ? requestedSaleAmount / baseSaleAmount : 1;
-          return baseLines.map((line) => {
+          return baseLines.map(line => {
             const salePricePerKg = Math.round(line.baseSalePricePerKg * ratio);
             const lineSaleTotal = Math.round(line.baseLineSaleTotal * ratio);
 
@@ -229,10 +196,7 @@ export async function createOrderAction(formData: FormData) {
         })()
       : baseLines;
 
-    const finalSaleAmount = finalLines.reduce(
-      (sum, line) => sum + line.lineSaleTotal,
-      0,
-    );
+    const finalSaleAmount = finalLines.reduce((sum, line) => sum + line.lineSaleTotal, 0);
     const finalProfitAmount = finalSaleAmount - totalCostAmount;
 
     await Order.create({
@@ -243,17 +207,17 @@ export async function createOrderAction(formData: FormData) {
       sellerId: new Types.ObjectId(session.seller.id),
       sellerName: session.seller.name,
       deliveryDate: new Date(deliveryDate),
-      fulfillmentStatus: requiresAdminApproval ? "PENDING_APPROVAL" : "CONFIRMED",
+      fulfillmentStatus: requiresAdminApproval ? 'PENDING_APPROVAL' : 'CONFIRMED',
       approval: {
         requiresAdminApproval,
-        status: requiresAdminApproval ? "PENDING" : "APPROVED",
+        status: requiresAdminApproval ? 'PENDING' : 'APPROVED',
         requestedAt: orderTime,
         reviewedAt: requiresAdminApproval ? undefined : orderTime,
         reviewedBySellerId: requiresAdminApproval ? undefined : new Types.ObjectId(session.seller.id),
         reviewedBySellerName: requiresAdminApproval ? undefined : session.seller.name,
       },
-      supplierPaymentStatus: "UNPAID_SUPPLIER",
-      collectionStatus: "UNPAID",
+      supplierPaymentStatus: 'UNPAID_SUPPLIER',
+      collectionStatus: 'UNPAID',
       costProfile: {
         profileId: costProfile._id,
         profileName: costProfile.name,
@@ -265,26 +229,14 @@ export async function createOrderAction(formData: FormData) {
         effectiveFrom: saleProfile.effectiveFrom,
       },
       discountRequest: {
-        status:
-          requestedDiscountPercent > 0
-            ? requiresAdminApproval
-              ? "PENDING"
-              : "APPROVED"
-            : "NONE",
+        status: requestedDiscountPercent > 0 ? (requiresAdminApproval ? 'PENDING' : 'APPROVED') : 'NONE',
         requestedPercent: requestedDiscountPercent,
         requestedAmount: requestedDiscountAmount,
         requestedSaleAmount: requestedDiscountPercent > 0 ? requestedSaleAmount : baseSaleAmount,
         reason: requestedDiscountPercent > 0 ? discountReason : undefined,
-        reviewedAt:
-          requestedDiscountPercent > 0 && !requiresAdminApproval ? orderTime : undefined,
-        reviewedBySellerId:
-          requestedDiscountPercent > 0 && !requiresAdminApproval
-            ? new Types.ObjectId(session.seller.id)
-            : undefined,
-        reviewedBySellerName:
-          requestedDiscountPercent > 0 && !requiresAdminApproval
-            ? session.seller.name
-            : undefined,
+        reviewedAt: requestedDiscountPercent > 0 && !requiresAdminApproval ? orderTime : undefined,
+        reviewedBySellerId: requestedDiscountPercent > 0 && !requiresAdminApproval ? new Types.ObjectId(session.seller.id) : undefined,
+        reviewedBySellerName: requestedDiscountPercent > 0 && !requiresAdminApproval ? session.seller.name : undefined,
       },
       items: finalLines,
       totalWeightKg,
@@ -306,18 +258,14 @@ export async function createOrderAction(formData: FormData) {
       });
     }
 
-    revalidatePath("/orders");
-    revalidatePath("/orders/new");
-    revalidatePath("/dashboard");
-    revalidatePath("/customers");
+    revalidatePath('/orders');
+    revalidatePath('/orders/new');
+    revalidatePath('/dashboard');
+    revalidatePath('/customers');
 
-    redirectWithMessage(
-      "/orders",
-      "success",
-      requiresAdminApproval ? m.orderCreatedPendingApproval : m.orderCreated,
-    );
+    redirectWithMessage('/orders', 'success', requiresAdminApproval ? m.orderCreatedPendingApproval : m.orderCreated);
   } catch (error) {
-    await handleActionError("/orders/new", error);
+    await handleActionError('/orders/new', error);
   }
 }
 
@@ -327,34 +275,26 @@ export async function updateOrderStatusesAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    if (session.seller.role !== "ADMIN") {
+    if (session.seller.role !== 'ADMIN') {
       throw new Error(m.onlyAdminCanUpdateOrderStatuses);
     }
 
-    const orderId = String(formData.get("orderId") || "").trim();
-    const returnToRaw = String(formData.get("returnTo") || "").trim();
-    const returnTo = returnToRaw.startsWith("/orders") ? returnToRaw : "/orders";
-    const fulfillmentStatus = String(formData.get("fulfillmentStatus") || "").trim();
-    const supplierPaymentStatus = String(formData.get("supplierPaymentStatus") || "").trim();
-    const collectionStatus = String(formData.get("collectionStatus") || "").trim();
+    const orderId = String(formData.get('orderId') || '').trim();
+    const returnToRaw = String(formData.get('returnTo') || '').trim();
+    const returnTo = returnToRaw.startsWith('/orders') ? returnToRaw : '/orders';
+    const fulfillmentStatus = String(formData.get('fulfillmentStatus') || '').trim();
+    const supplierPaymentStatus = String(formData.get('supplierPaymentStatus') || '').trim();
+    const collectionStatus = String(formData.get('collectionStatus') || '').trim();
 
     if (!Types.ObjectId.isValid(orderId)) {
       throw new Error(m.invalidOrderId);
     }
 
-    if (
-      !ORDER_FULFILLMENT_STATUSES.includes(
-        fulfillmentStatus as (typeof ORDER_FULFILLMENT_STATUSES)[number],
-      )
-    ) {
+    if (!ORDER_FULFILLMENT_STATUSES.includes(fulfillmentStatus as (typeof ORDER_FULFILLMENT_STATUSES)[number])) {
       throw new Error(m.invalidFulfillmentStatus);
     }
 
-    if (
-      !SUPPLIER_PAYMENT_STATUSES.includes(
-        supplierPaymentStatus as (typeof SUPPLIER_PAYMENT_STATUSES)[number],
-      )
-    ) {
+    if (!SUPPLIER_PAYMENT_STATUSES.includes(supplierPaymentStatus as (typeof SUPPLIER_PAYMENT_STATUSES)[number])) {
       throw new Error(m.invalidCapitalStatus);
     }
 
@@ -362,7 +302,7 @@ export async function updateOrderStatusesAction(formData: FormData) {
       throw new Error(m.invalidCollectionStatus);
     }
 
-    if (fulfillmentStatus === "PENDING_APPROVAL") {
+    if (fulfillmentStatus === 'PENDING_APPROVAL') {
       throw new Error(m.invalidFulfillmentStatus);
     }
 
@@ -371,7 +311,7 @@ export async function updateOrderStatusesAction(formData: FormData) {
       throw new Error(m.orderNotFound);
     }
 
-    if (order.fulfillmentStatus === "PENDING_APPROVAL" || order.approval?.status === "PENDING") {
+    if (order.fulfillmentStatus === 'PENDING_APPROVAL' || order.approval?.status === 'PENDING') {
       throw new Error(m.orderPendingApprovalLocked);
     }
 
@@ -381,12 +321,12 @@ export async function updateOrderStatusesAction(formData: FormData) {
       collectionStatus,
     });
 
-    revalidatePath("/orders");
-    revalidatePath("/dashboard");
+    revalidatePath('/orders');
+    revalidatePath('/dashboard');
 
-    redirectWithMessage(returnTo || "/orders", "success", m.orderStatusesUpdated);
+    redirectWithMessage(returnTo || '/orders', 'success', m.orderStatusesUpdated);
   } catch (error) {
-    await handleActionError("/orders", error);
+    await handleActionError('/orders', error);
   }
 }
 
@@ -396,21 +336,17 @@ export async function reviewOrderApprovalAction(formData: FormData) {
     await connectToDatabase();
     const m = await getActionMessages();
 
-    const orderId = String(formData.get("orderId") || "").trim();
-    const returnToRaw = String(formData.get("returnTo") || "").trim();
-    const returnTo = returnToRaw.startsWith("/orders") ? returnToRaw : "/orders";
-    const decision = String(formData.get("decision") || "").trim();
-    const note = String(formData.get("note") || "").trim();
+    const orderId = String(formData.get('orderId') || '').trim();
+    const returnToRaw = String(formData.get('returnTo') || '').trim();
+    const returnTo = returnToRaw.startsWith('/orders') ? returnToRaw : '/orders';
+    const decision = String(formData.get('decision') || '').trim();
+    const note = String(formData.get('note') || '').trim();
 
     if (!Types.ObjectId.isValid(orderId)) {
       throw new Error(m.invalidOrderId);
     }
 
-    if (
-      !ORDER_APPROVAL_DECISIONS.includes(
-        decision as OrderApprovalDecision,
-      )
-    ) {
+    if (!ORDER_APPROVAL_DECISIONS.includes(decision as OrderApprovalDecision)) {
       throw new Error(m.invalidOrderApprovalDecision);
     }
 
@@ -419,22 +355,17 @@ export async function reviewOrderApprovalAction(formData: FormData) {
       throw new Error(m.orderNotFound);
     }
 
-    if (order.fulfillmentStatus !== "PENDING_APPROVAL" || order.approval?.status !== "PENDING") {
+    if (order.fulfillmentStatus !== 'PENDING_APPROVAL' || order.approval?.status !== 'PENDING') {
       throw new Error(m.orderAlreadyReviewed);
     }
 
-    const hasDiscountRequest =
-      order.discountRequest?.status === "PENDING" &&
-      (order.discountRequest?.requestedPercent ?? 0) > 0;
+    const hasDiscountRequest = order.discountRequest?.status === 'PENDING' && (order.discountRequest?.requestedPercent ?? 0) > 0;
 
-    if (decision === "APPROVE_ORDER" && hasDiscountRequest) {
+    if (decision === 'APPROVE_ORDER' && hasDiscountRequest) {
       throw new Error(m.discountDecisionRequired);
     }
 
-    if (
-      (decision === "APPROVE_WITH_DISCOUNT" || decision === "APPROVE_WITHOUT_DISCOUNT") &&
-      !hasDiscountRequest
-    ) {
+    if ((decision === 'APPROVE_WITH_DISCOUNT' || decision === 'APPROVE_WITHOUT_DISCOUNT') && !hasDiscountRequest) {
       throw new Error(m.discountRequestNotFound);
     }
 
@@ -453,29 +384,23 @@ export async function reviewOrderApprovalAction(formData: FormData) {
       lineProfit: number;
     }>;
 
-    let nextFulfillmentStatus: (typeof ORDER_FULFILLMENT_STATUSES)[number] =
-      order.fulfillmentStatus;
-    let nextApprovalStatus: "APPROVED" | "REJECTED" = "APPROVED";
+    let nextFulfillmentStatus: (typeof ORDER_FULFILLMENT_STATUSES)[number] = order.fulfillmentStatus;
+    let nextApprovalStatus: 'APPROVED' | 'REJECTED' = 'APPROVED';
     let nextSaleAmount = order.totalSaleAmount;
-    let nextDiscountStatus =
-      (order.discountRequest?.status as "NONE" | "PENDING" | "APPROVED" | "REJECTED" | undefined) ??
-      "NONE";
+    let nextDiscountStatus = (order.discountRequest?.status as 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED' | undefined) ?? 'NONE';
     let nextLines = orderLines;
     let successMessage = m.orderApproved;
 
-    if (decision === "REJECT_ORDER") {
-      nextFulfillmentStatus = "CANCELED";
-      nextApprovalStatus = "REJECTED";
-      nextDiscountStatus = hasDiscountRequest ? "REJECTED" : nextDiscountStatus;
+    if (decision === 'REJECT_ORDER') {
+      nextFulfillmentStatus = 'CANCELED';
+      nextApprovalStatus = 'REJECTED';
+      nextDiscountStatus = hasDiscountRequest ? 'REJECTED' : nextDiscountStatus;
       successMessage = m.orderRejected;
-    } else if (decision === "APPROVE_WITH_DISCOUNT") {
-      const requestedSaleAmount = Math.max(
-        0,
-        Math.round(order.discountRequest?.requestedSaleAmount ?? baseSaleAmount),
-      );
+    } else if (decision === 'APPROVE_WITH_DISCOUNT') {
+      const requestedSaleAmount = Math.max(0, Math.round(order.discountRequest?.requestedSaleAmount ?? baseSaleAmount));
       const ratio = baseSaleAmount > 0 ? requestedSaleAmount / baseSaleAmount : 1;
 
-      nextLines = orderLines.map((line) => {
+      nextLines = orderLines.map(line => {
         const baseSalePricePerKg = line.baseSalePricePerKg ?? line.salePricePerKg;
         const baseLineSaleTotal = line.baseLineSaleTotal ?? line.lineSaleTotal;
         const salePricePerKg = Math.round(baseSalePricePerKg * ratio);
@@ -492,11 +417,11 @@ export async function reviewOrderApprovalAction(formData: FormData) {
       });
 
       nextSaleAmount = nextLines.reduce((sum, line) => sum + line.lineSaleTotal, 0);
-      nextDiscountStatus = "APPROVED";
-      nextFulfillmentStatus = "CONFIRMED";
+      nextDiscountStatus = 'APPROVED';
+      nextFulfillmentStatus = 'CONFIRMED';
       successMessage = m.orderApprovedWithDiscount;
-    } else if (decision === "APPROVE_WITHOUT_DISCOUNT") {
-      nextLines = orderLines.map((line) => {
+    } else if (decision === 'APPROVE_WITHOUT_DISCOUNT') {
+      nextLines = orderLines.map(line => {
         const baseSalePricePerKg = line.baseSalePricePerKg ?? line.salePricePerKg;
         const baseLineSaleTotal = line.baseLineSaleTotal ?? line.lineSaleTotal;
         return {
@@ -509,17 +434,16 @@ export async function reviewOrderApprovalAction(formData: FormData) {
         };
       });
       nextSaleAmount = nextLines.reduce((sum, line) => sum + line.lineSaleTotal, 0);
-      nextDiscountStatus = "REJECTED";
-      nextFulfillmentStatus = "CONFIRMED";
+      nextDiscountStatus = 'REJECTED';
+      nextFulfillmentStatus = 'CONFIRMED';
       successMessage = m.orderApprovedWithoutDiscount;
     } else {
-      nextFulfillmentStatus = "CONFIRMED";
-      nextDiscountStatus = hasDiscountRequest ? "APPROVED" : nextDiscountStatus;
+      nextFulfillmentStatus = 'CONFIRMED';
+      nextDiscountStatus = hasDiscountRequest ? 'APPROVED' : nextDiscountStatus;
       successMessage = m.orderApproved;
     }
 
-    const nextProfitAmount =
-      nextFulfillmentStatus === "CANCELED" ? order.totalProfitAmount : nextSaleAmount - order.totalCostAmount;
+    const nextProfitAmount = nextFulfillmentStatus === 'CANCELED' ? order.totalProfitAmount : nextSaleAmount - order.totalCostAmount;
 
     await Order.findByIdAndUpdate(orderId, {
       fulfillmentStatus: nextFulfillmentStatus,
@@ -540,17 +464,13 @@ export async function reviewOrderApprovalAction(formData: FormData) {
         ...order.discountRequest,
         status: nextDiscountStatus,
         reviewedAt: hasDiscountRequest ? now : order.discountRequest?.reviewedAt,
-        reviewedBySellerId: hasDiscountRequest
-          ? new Types.ObjectId(session.seller.id)
-          : order.discountRequest?.reviewedBySellerId,
-        reviewedBySellerName: hasDiscountRequest
-          ? session.seller.name
-          : order.discountRequest?.reviewedBySellerName,
+        reviewedBySellerId: hasDiscountRequest ? new Types.ObjectId(session.seller.id) : order.discountRequest?.reviewedBySellerId,
+        reviewedBySellerName: hasDiscountRequest ? session.seller.name : order.discountRequest?.reviewedBySellerName,
         reviewNote: hasDiscountRequest ? note || undefined : order.discountRequest?.reviewNote,
       },
     });
 
-    if (nextFulfillmentStatus === "CONFIRMED" && nextApprovalStatus === "APPROVED") {
+    if (nextFulfillmentStatus === 'CONFIRMED' && nextApprovalStatus === 'APPROVED') {
       await Customer.findByIdAndUpdate(order.customerId, {
         $inc: {
           orderCount: 1,
@@ -562,13 +482,13 @@ export async function reviewOrderApprovalAction(formData: FormData) {
       });
     }
 
-    revalidatePath("/orders");
-    revalidatePath("/orders/new");
-    revalidatePath("/dashboard");
-    revalidatePath("/customers");
+    revalidatePath('/orders');
+    revalidatePath('/orders/new');
+    revalidatePath('/dashboard');
+    revalidatePath('/customers');
 
-    redirectWithMessage(returnTo || "/orders", "success", successMessage);
+    redirectWithMessage(returnTo || '/orders', 'success', successMessage);
   } catch (error) {
-    await handleActionError("/orders", error);
+    await handleActionError('/orders', error);
   }
 }

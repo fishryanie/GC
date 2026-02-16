@@ -3,8 +3,14 @@
     "appName": "GC",
     "operations": "Vận hành",
     "searchPlaceholder": "Tìm kiếm...",
+    "loading": "Đang tải...",
     "notificationsAria": "Thông báo",
     "languageSwitcherAria": "Đổi ngôn ngữ",
+    "themeSwitcherAria": "Đổi giao diện",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSwitchToLight": "Chuyển sang giao diện sáng",
+    "themeSwitchToDark": "Chuyển sang giao diện tối",
     "settings": "Cài đặt",
     "changePassword": "Đổi mật khẩu",
     "roleAdmin": "Quản trị",
@@ -12,6 +18,31 @@
     "signOut": "Đăng xuất",
     "vnd": "VND",
     "none": "Không có"
+  },
+  "notFoundPage": {
+    "code": "404",
+    "title": "Không tìm thấy trang",
+    "subtitle": "Endpoint có thể đã sai hoặc trang này đã được di chuyển.",
+    "goDashboard": "Về dashboard",
+    "goLogin": "Đến trang đăng nhập",
+    "goHome": "Quay về trang chủ"
+  },
+  "pwaPrompt": {
+    "title": "Cài đặt GC",
+    "subtitle": "Thêm vào màn hình chính để dùng như ứng dụng thật.",
+    "closeAria": "Đóng hộp thoại cài app",
+    "installButton": "Cài đặt ngay",
+    "iosButton": "Xem hướng dẫn iOS",
+    "androidButton": "Xem hướng dẫn Android",
+    "skipButton": "Để sau",
+    "installing": "Đang cài...",
+    "iosTitle": "Cài trên iPhone/iPad",
+    "iosStep1": "Mở trang này bằng Safari.",
+    "iosStep2": "Nhấn nút Share",
+    "iosStep3": "Chọn \"Add to Home Screen\".",
+    "androidTitle": "Cài trên Android",
+    "androidReady": "Nhấn cài đặt để thêm GC trực tiếp ra màn hình chính.",
+    "androidManual": "Mở menu trình duyệt (⋮) và chọn \"Add to Home screen\" hoặc \"Install app\"."
   },
   "shell": {
     "nav": {
@@ -40,6 +71,28 @@
     "supplierUnpaid": "Chưa thanh toán NCC: {count}",
     "latestOrders": "Đơn hàng gần nhất",
     "viewAll": "Xem tất cả",
+    "sellerPerformance": {
+      "title": "Tổng quan hiệu suất seller",
+      "subtitle": "Theo dõi sản lượng, chi phí và tiến độ giao hàng của từng seller.",
+      "sellers": "{count} seller",
+      "orders": "{count} đơn",
+      "totalCosts": "Chi phí: {amount}",
+      "topSeller": "Top: {name}",
+      "empty": "Chưa có dữ liệu seller.",
+      "totalRow": "Tổng",
+      "columns": {
+        "seller": "Seller",
+        "orders": "Số đơn",
+        "revenue": "Doanh thu",
+        "cost": "Chi phí",
+        "profit": "Lãi",
+        "avgOrder": "TB/đơn",
+        "pendingApproval": "Chờ duyệt",
+        "delivery": "Giao hàng",
+        "deliveringValue": "Đang giao {count}",
+        "deliveredValue": "Đã giao {count}"
+      }
+    },
     "table": {
       "orderCode": "Mã đơn",
       "buyer": "Khách hàng",
@@ -59,6 +112,7 @@
   "products": {
     "title": "Kho sản phẩm",
     "subtitle": "Quản lý sản phẩm bán chả",
+    "exportButton": "Xuất Excel",
     "addProduct": "Thêm sản phẩm",
     "filters": {
       "all": "Tất cả",
@@ -86,6 +140,7 @@
   "priceProfilesPage": {
     "title": "Profile giá",
     "subtitle": "Quản lý các phiên bản giá vốn và giá bán để xuất đơn và tracking.",
+    "exportButton": "Xuất Excel",
     "addButton": "Thêm profile mới",
     "searchPlaceholder": "Tìm theo tên profile...",
     "empty": "Không có profile nào khớp bộ lọc hiện tại.",
@@ -95,6 +150,10 @@
       "all": "Tất cả",
       "active": "Đang bật",
       "inactive": "Đang tắt"
+    },
+    "ownerFilter": {
+      "all": "Tất cả người tạo",
+      "system": "Hệ thống"
     },
     "createCardTitle": "Tạo profile giá mới",
     "createCardHint": "Panel tạo profile được giữ cố định để thao tác nhanh. Danh sách profile ở cột phải sẽ cuộn.",
@@ -109,9 +168,30 @@
     },
     "emptyCost": "Chưa có profile giá vốn.",
     "emptySale": "Chưa có profile giá bán.",
+    "emptySaleSystem": "Chưa có profile giá bán gợi ý từ hệ thống.",
+    "emptySaleMine": "Bạn chưa tạo profile giá bán nào.",
     "lanes": {
       "cost": "Lane Giá vốn",
       "sale": "Lane Giá bán"
+    },
+    "saleSegments": {
+      "system": "Profile hệ thống gợi ý",
+      "mine": "Profile giá bán của tôi"
+    },
+    "source": {
+      "systemSuggested": "Hệ thống gợi ý",
+      "myProfile": "Tôi tạo",
+      "otherSeller": "Seller khác"
+    },
+    "sourceLegendTitle": "CHÚ THÍCH NGUỒN PROFILE",
+    "sourceLegendSystemHint": "Profile mặc định do admin/hệ thống đề xuất.",
+    "sourceLegendMineHint": "Profile do chính tài khoản seller của bạn tạo.",
+    "sourceSystemHint": "Nguồn tạo: profile hệ thống gợi ý.",
+    "ownerTag": {
+      "system": "Hệ thống",
+      "mine": "Của tôi",
+      "seller": "Seller: {name}",
+      "sellerFallback": "Không rõ"
     },
     "effectiveUpdated": "Hiệu lực: {effective} | Cập nhật: {updated}",
     "switchAriaPause": "Tạm dừng profile",
@@ -123,6 +203,10 @@
     "productsCount": "{count} sản phẩm",
     "noPrices": "Chưa có giá",
     "viewPriceTable": "Xem bảng giá ({count} sản phẩm)",
+    "showPriceTable": "Xem giá sản phẩm ({count})",
+    "hidePriceTable": "Ẩn bảng giá sản phẩm ({count})",
+    "moreProducts": "+{count} sản phẩm khác",
+    "expandHint": "Bấm nút ở trên để mở chi tiết bảng giá theo sản phẩm.",
     "sellerOwner": "Seller: {name}",
     "table": {
       "product": "Sản phẩm",
@@ -165,6 +249,7 @@
     "heroTag": "HÓA ĐƠN",
     "heroTitle": "Bảng quản lý hóa đơn",
     "heroSubtitle": "Theo dõi thu tiền, trạng thái giao hàng và lãi/lỗ theo từng profile giá.",
+    "exportButton": "Xuất Excel",
     "cards": {
       "totalInvoices": "Tổng hóa đơn",
       "systemTotal": "Tổng hệ thống: {count}",
@@ -173,12 +258,82 @@
       "revenue": "Doanh thu",
       "profit": "Lãi: {amount}"
     },
+    "charts": {
+      "empty": "Không có dữ liệu",
+      "deliveryTrendTitle": "Xu hướng doanh thu theo ngày giao",
+      "deliveryTrendHint": "Dữ liệu theo bộ lọc hiện tại, gom theo ngày giao (8 mốc gần nhất).",
+      "fulfillmentTitle": "Phân bổ trạng thái đơn",
+      "fulfillmentHint": "Số lượng đơn theo trạng thái xử lý.",
+      "collectionTitle": "Phân bổ trạng thái thu tiền",
+      "collectionHint": "Số lượng đơn theo trạng thái thu tiền.",
+      "sellerBarsTitle": "Top seller theo giá trị bill",
+      "sellerBarsHint": "Seller có tổng bill cao nhất theo bộ lọc hiện tại.",
+      "productBarsTitle": "Top sản phẩm theo giá trị bill",
+      "productBarsHint": "Sản phẩm có tổng bill cao nhất theo bộ lọc hiện tại.",
+      "fulfillment": {
+        "pendingApproval": "Chờ duyệt",
+        "confirmed": "Đã xác nhận",
+        "picked": "Đã lấy hàng",
+        "delivering": "Đang giao",
+        "delivered": "Đã giao",
+        "canceled": "Hủy"
+      },
+      "collection": {
+        "unpaid": "Chưa thu",
+        "partiallyPaid": "Thu một phần",
+        "paidInFull": "Thu đủ",
+        "refunded": "Hoàn tiền"
+      }
+    },
+    "sellerStats": {
+      "title": "Tổng quan hiệu suất seller",
+      "subtitle": "Theo dõi nhanh số đơn, chi phí và tiến độ giao hàng của từng seller.",
+      "sellers": "{count} seller",
+      "orders": "{count} đơn",
+      "totalCosts": "Chi phí: {amount}",
+      "topSeller": "Top: {name}",
+      "empty": "Không có dữ liệu seller theo bộ lọc hiện tại.",
+      "totalRow": "Tổng",
+      "columns": {
+        "seller": "Seller",
+        "orders": "Số đơn",
+        "revenue": "Doanh thu",
+        "cost": "Chi phí",
+        "profit": "Lãi",
+        "avgOrder": "TB/đơn",
+        "pendingApproval": "Chờ duyệt",
+        "delivery": "Giao hàng",
+        "deliveringValue": "Đang giao {count}",
+        "deliveredValue": "Đã giao {count}"
+      }
+    },
     "searchPlaceholder": "Tìm theo mã đơn, khách hàng, sản phẩm...",
+    "details": {
+      "open": "Chi tiết",
+      "close": "Đóng",
+      "title": "Chi tiết đơn hàng",
+      "subtitle": "Tạo lúc: {createdAt}",
+      "moreProducts": "+{count} sản phẩm",
+      "labels": {
+        "bill": "Bill",
+        "baseSale": "Giá gốc",
+        "cost": "Giá vốn",
+        "profit": "Lãi",
+        "weightKg": "Khối lượng (kg)",
+        "lineTotal": "Thành tiền",
+        "saleProfile": "Profile giá bán",
+        "costProfile": "Profile giá vốn"
+      }
+    },
     "emptyOrders": "Chưa có đơn hàng nào",
     "emptyFiltered": "Không có đơn nào khớp bộ lọc hiện tại",
     "table": {
       "invoiceCode": "Mã HĐ",
+      "invoiceSeller": "Invoice / Seller",
+      "timeline": "Ngày tạo / Ngày giao",
+      "customerProducts": "Khách hàng / Sản phẩm",
       "buyer": "Khách hàng",
+      "sellerColumn": "Seller",
       "products": "Sản phẩm",
       "profiles": "Profile",
       "totals": "Tổng tiền",
@@ -188,6 +343,7 @@
       "costProfile": "Vốn: {name}",
       "saleProfile": "Bán: {name}",
       "seller": "Seller: {name}",
+      "systemSeller": "Hệ thống",
       "bill": "Bill: {amount}",
       "baseSale": "Gốc: {amount}",
       "discountPending": "Xin giảm {percent}% → {requested}",
@@ -218,10 +374,12 @@
     "orderStatus": "Trạng thái đơn",
     "capitalCycleStatus": "Trạng thái vòng vốn",
     "collectionStatus": "Trạng thái thu tiền",
+    "seller": "Seller",
     "deliveryYear": "Năm giao",
     "deliveryMonth": "Tháng giao",
     "deliveryDay": "Ngày giao",
     "all": "Tất cả",
+    "allSellers": "Tất cả seller",
     "allYears": "Tất cả năm",
     "allMonths": "Tất cả tháng",
     "monthLabel": "Tháng {value}",
@@ -232,7 +390,24 @@
   },
   "orderStatusForm": {
     "save": "Lưu",
-    "readOnlyHint": "Chỉ admin mới cập nhật trạng thái sau khi duyệt."
+    "saving": "Đang lưu...",
+    "edit": "Sửa",
+    "cancel": "Hủy",
+    "readOnlyHint": "Chỉ admin mới cập nhật trạng thái sau khi duyệt.",
+    "readOnlyCompact": "Chỉ xem",
+    "editStatuses": "Cập nhật trạng thái",
+    "hideEditor": "Ẩn chỉnh sửa",
+    "editorHint": "Cập nhật chi tiết nếu cần, còn list đang hiển thị trạng thái tổng quát.",
+    "collectionInline": "Thu tiền: {status}",
+    "supplierInline": "NCC: {status}",
+    "workflow": {
+      "NEEDS_APPROVAL": "Chờ duyệt",
+      "CONFIRMED": "Đã xác nhận",
+      "IN_DELIVERY": "Đang xử lý giao",
+      "DELIVERED": "Đã giao",
+      "COMPLETED": "Hoàn tất vòng đơn",
+      "CANCELED": "Đã hủy"
+    }
   },
   "orderBuilder": {
     "submitPending": "Đang tạo đơn...",
@@ -255,7 +430,13 @@
     "costProfileAutoHint": "Hệ thống sẽ tự động áp dụng profile giá vốn đang active khi submit đơn.",
     "saleProfileTitle": "Profile giá bán",
     "systemProfile": "Profile hệ thống",
-    "sellerProfile": "Profile seller",
+    "sellerProfile": "Profile của tôi",
+    "saleProfileGroupSystem": "Hệ thống gợi ý",
+    "saleProfileGroupMine": "Profile của tôi",
+    "saleProfileGroupOthers": "Profile seller khác",
+    "saleProfileHintSystem": "Đang dùng profile hệ thống gợi ý.",
+    "saleProfileHintMine": "Đang dùng profile do bạn tạo.",
+    "saleProfileHintOther": "Đang dùng profile của seller: {name}.",
     "effective": "Hiệu lực: {date}",
     "pricedProducts": "{count} sản phẩm áp giá",
     "approvalHint": "Đơn này sẽ ở trạng thái chờ admin duyệt.",
@@ -310,6 +491,7 @@
     "showPassword": "Hiện mật khẩu",
     "hidePassword": "Ẩn mật khẩu",
     "submit": "Đăng nhập",
+    "submitPending": "Đang đăng nhập...",
     "demoTitle": "Tài khoản mặc định",
     "demoAdmin": "Admin: admin@gc.vn / Admin@123"
   },
@@ -325,6 +507,7 @@
   "customersPage": {
     "title": "Khách hàng & Seller",
     "subtitle": "Quản lý người mua và tài khoản seller để tracking đơn hàng và quyền truy cập.",
+    "exportButton": "Xuất Excel",
     "tabs": {
       "customers": "Khách hàng ({count})",
       "sellers": "Seller ({count})"
@@ -350,6 +533,7 @@
       "addButton": "Thêm khách hàng",
       "empty": "Không có khách hàng nào khớp bộ lọc hiện tại.",
       "editAria": "Chỉnh sửa khách hàng",
+      "viewDetailsAria": "Xem tổng quan của {name}",
       "pause": "Tạm dừng",
       "enable": "Bật lại",
       "stats": {
@@ -373,6 +557,49 @@
         "notes": "Ghi chú",
         "submitCreate": "Tạo mới",
         "submitEdit": "Cập nhật"
+      },
+      "details": {
+        "backToCustomers": "Quay lại danh sách khách hàng",
+        "tag": "Chi tiết hiệu suất khách hàng",
+        "cards": {
+          "totalOrders": "Tổng đơn",
+          "totalSpent": "Tổng chi",
+          "totalWeight": "Tổng khối lượng",
+          "profit": "Lãi",
+          "unpaid": "Đơn chưa thu",
+          "activeDays": "{count} ngày có đơn",
+          "avgOrder": "TB/đơn: {amount}",
+          "uniqueSellers": "{count} seller phục vụ",
+          "pendingApproval": "Chờ duyệt: {count}",
+          "partiallyPaid": "Thu một phần: {count}"
+        },
+        "charts": {
+          "empty": "Không có dữ liệu",
+          "spentTrendTitle": "Xu hướng tổng chi (6 tháng)",
+          "spentTrendHint": "Giá trị bill theo từng tháng của khách hàng này.",
+          "profitTrendTitle": "Xu hướng đóng góp lãi (6 tháng)",
+          "profitTrendHint": "Lãi tạo ra theo từng tháng từ khách hàng này.",
+          "orderFlowHint": "Phân bổ đơn theo trạng thái xử lý hiện tại.",
+          "collectionFlowHint": "Phân bổ đơn theo trạng thái thu tiền hiện tại.",
+          "sellerContributionHint": "Seller đóng góp doanh số cao nhất cho khách này.",
+          "topProductsHint": "Sản phẩm khách này mua nhiều tiền nhất."
+        },
+        "orderFlowTitle": "Tổng quan luồng đơn",
+        "collectionFlowTitle": "Tổng quan thu tiền",
+        "sellerContributionTitle": "Seller đóng góp chính",
+        "sellerContributionListTitle": "Chi tiết đóng góp theo seller",
+        "emptySellerContributions": "Chưa có dữ liệu đóng góp seller.",
+        "monthlyTitle": "Timeline mua hàng (6 tháng gần nhất)",
+        "monthlyHint": "Xu hướng số đơn và mức chi theo tháng.",
+        "orders": "{count} đơn",
+        "topProductsTitle": "Sản phẩm mua nhiều nhất",
+        "emptyProducts": "Chưa có dữ liệu sản phẩm.",
+        "products": "{count} sản phẩm",
+        "recentOrdersTitle": "Đơn hàng gần nhất của khách",
+        "viewCustomerOrders": "Xem tất cả đơn của khách",
+        "emptyOrders": "Khách hàng này chưa có đơn.",
+        "firstOrderAt": "Đơn đầu tiên: {value}",
+        "lastOrderAt": "Đơn gần nhất: {value}"
       }
     },
     "sellers": {
@@ -380,6 +607,7 @@
       "empty": "Không có seller nào khớp bộ lọc hiện tại.",
       "current": "Bạn",
       "editAria": "Chỉnh sửa seller",
+      "viewDetailsAria": "Xem tổng quan của {name}",
       "resetPasswordAria": "Reset mật khẩu seller",
       "disable": "Tắt",
       "enable": "Bật",
@@ -387,6 +615,51 @@
       "top30dItem": "{orders} đơn • {amount}",
       "lastLogin": "Đăng nhập gần nhất: {value}",
       "noLogin": "Chưa đăng nhập",
+      "details": {
+        "backToSellers": "Quay lại danh sách seller",
+        "tag": "Chi tiết hiệu suất seller",
+        "cards": {
+          "totalOrders": "Tổng đơn",
+          "revenue": "Doanh thu",
+          "cost": "Chi phí",
+          "profit": "Lãi",
+          "discountRequests": "Yêu cầu discount",
+          "activeDays": "{count} ngày có đơn",
+          "avgOrder": "TB/đơn: {amount}",
+          "weight": "Khối lượng: {value}",
+          "pendingApproval": "Chờ duyệt: {count}",
+          "discountApproved": "Discount đã duyệt: {count}"
+        },
+        "charts": {
+          "empty": "Không có dữ liệu",
+          "revenueTrendTitle": "Xu hướng doanh thu (6 tháng)",
+          "revenueTrendHint": "Giá trị bill theo từng tháng của seller.",
+          "profitTrendTitle": "Xu hướng lãi (6 tháng)",
+          "profitTrendHint": "Lãi thực tế theo từng tháng từ đơn của seller.",
+          "orderFlowHint": "Phân bổ đơn theo trạng thái xử lý hiện tại.",
+          "capitalFlowHint": "Phân bổ đơn theo trạng thái vòng vốn hiện tại.",
+          "collectionFlowHint": "Phân bổ đơn theo trạng thái thu tiền hiện tại.",
+          "topProductsHint": "Sản phẩm tạo bill cao nhất của seller này."
+        },
+        "orderFlowTitle": "Tổng quan luồng đơn",
+        "capitalFlowTitle": "Tổng quan vòng vốn",
+        "collectionFlowTitle": "Tổng quan thu tiền",
+        "monthlyTitle": "Timeline hiệu suất (6 tháng gần nhất)",
+        "monthlyHint": "Xu hướng doanh thu và lãi theo từng tháng.",
+        "orders": "{count} đơn",
+        "topProductsTitle": "Sản phẩm bán tốt của seller",
+        "emptyProducts": "Chưa có dữ liệu sản phẩm.",
+        "saleProfilesTitle": "Profile giá bán của seller",
+        "emptyProfiles": "Seller này chưa tạo profile giá bán nào.",
+        "activeProfiles": "Profile đang hoạt động",
+        "noActiveProfiles": "Không có profile nào đang bật.",
+        "latestProfiles": "Phiên bản profile gần nhất",
+        "profileUpdated": "Cập nhật: {value}",
+        "products": "{count} sản phẩm",
+        "recentOrdersTitle": "Đơn hàng gần nhất của seller",
+        "viewSellerOrders": "Xem toàn bộ đơn của seller",
+        "emptyOrders": "Seller này chưa có đơn hàng."
+      },
       "stats": {
         "total": "Tổng tài khoản",
         "enabled": "Tài khoản đang bật",

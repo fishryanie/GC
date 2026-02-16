@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { App, ConfigProvider, theme } from "antd";
+import { App, ConfigProvider } from "antd";
 import enUS from "antd/locale/en_US";
 import viVN from "antd/locale/vi_VN";
 import { useLocale } from "next-intl";
@@ -17,7 +17,6 @@ export function AppProviders({ children }: AppProvidersProps) {
     <ConfigProvider
       locale={locale === "en" ? enUS : viVN}
       theme={{
-        algorithm: theme.darkAlgorithm,
         token: {
           colorPrimary: "#22c55e",
           colorInfo: "#3b82f6",
@@ -51,6 +50,13 @@ export function AppProviders({ children }: AppProvidersProps) {
           Button: {
             controlHeight: 38,
             controlHeightSM: 30,
+          },
+          Select: {
+            controlHeight: 38,
+            controlHeightSM: 30,
+            optionSelectedBg: "rgba(34,197,94,0.14)",
+            optionActiveBg: "rgba(34,197,94,0.14)",
+            
           },
           Menu: {
             itemHeight: 44,
