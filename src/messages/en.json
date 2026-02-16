@@ -161,8 +161,11 @@
     "heroTitle": "Price Studio: cost and sale lanes",
     "heroSubtitle": "Two independent lanes let you track active profiles and update quickly without long scrolling.",
     "stats": {
-      "totalProfiles": "Total profiles",
-      "activeProfiles": "Active profiles",
+      "costLaneProfiles": "Cost lane profiles",
+      "saleLaneProfiles": "Sale lane profiles",
+      "systemSuggestedSale": "System suggested sale",
+      "sellerSaleProfiles": "Seller-created sale",
+      "mySaleProfiles": "My sale profiles",
       "pricedProducts": "Priced products",
       "avgProductsPerProfile": "Avg products / profile"
     },

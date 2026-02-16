@@ -1,7 +1,4 @@
-'use client';
-
 import { useTranslations } from 'next-intl';
-import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { AppHeader } from './components/app-header';
 import { LeftMenu } from './components/left-menu';
@@ -15,12 +12,11 @@ type AdminLayoutShellProps = {
 };
 
 export function AdminLayoutShell({ children, dbError, currentSeller }: AdminLayoutShellProps) {
-  const pathname = usePathname();
   const tShell = useTranslations('shell');
 
   return (
     <div className='flex h-screen bg-background text-foreground'>
-      <LeftMenu pathname={pathname} />
+      <LeftMenu />
 
       <div className='flex flex-1 flex-col overflow-hidden'>
         <AppHeader currentSeller={currentSeller} />
@@ -37,8 +33,7 @@ export function AdminLayoutShell({ children, dbError, currentSeller }: AdminLayo
         </main>
       </div>
 
-      <MobileBottomNav pathname={pathname} />
+      <MobileBottomNav />
     </div>
   );
 }
-

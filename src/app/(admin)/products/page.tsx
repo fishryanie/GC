@@ -1,7 +1,6 @@
 import { requireAuthSession } from 'lib/auth';
 import { getDefaultSalePrices, getProductStats, listProducts } from 'lib/data';
 import { resolveSearchParams } from 'lib/search-params';
-import { deleteProductAction, toggleProductStatusAction, upsertProductAction } from './actions';
 import { ProductsGrid } from './components/products-grid';
 
 type ProductFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -60,9 +59,6 @@ export default async function ProductsPage({
         searchQuery={searchQuery}
         defaultSalePrices={defaultSalePrices}
         exportHref={exportHref}
-        upsertAction={upsertProductAction}
-        toggleStatusAction={toggleProductStatusAction}
-        deleteAction={deleteProductAction}
       />
     </div>
   );

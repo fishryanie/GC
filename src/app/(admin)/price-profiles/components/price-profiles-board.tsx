@@ -2,18 +2,13 @@
 
 import { Button, Drawer, Segmented, Select, Switch } from 'antd';
 import { formatCurrency } from 'lib/format';
-import { Copy, Plus, Save, Search, Sparkles, WalletCards } from 'lucide-react';
+import { BarChart3, CheckCircle2, Copy, Plus, Save, Search, Sparkles, WalletCards } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { PriceProfileView, ProductView } from 'types';
-import {
-  PriceProfileCreateForm,
-  type PriceProfileCreateFormHandle,
-  type PriceProfileCreateResult,
-  type PriceProfileSubmitState,
-} from './price-profile-create-form';
+import { clonePriceProfileAction, togglePriceProfileStatusAction } from '../actions';
+import { PriceProfileCreateForm, type PriceProfileCreateFormHandle, type PriceProfileSubmitState } from './price-profile-create-form';
 
 type PriceProfileStatusFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
 type PriceProfileOwnerFilter = 'ALL' | 'SYSTEM' | string;
@@ -34,9 +29,6 @@ type PriceProfilesBoardProps = {
   statusFilter: PriceProfileStatusFilter;
   searchQuery: string;
   exportHref: string;
-  createAction: (formData: FormData) => Promise<PriceProfileCreateResult | void>;
-  toggleAction: (formData: FormData) => Promise<void>;
-  cloneAction: (formData: FormData) => Promise<void>;
 };
 
 const FILTER_OPTIONS: Array<{
@@ -83,8 +75,6 @@ type ProfileSectionProps = {
   profiles: PriceProfileView[];
   tone: 'cost' | 'sale';
   isAdminView: boolean;
-  onToggleAction: (formData: FormData) => Promise<void>;
-  onCloneAction: (formData: FormData) => Promise<void>;
   t: ReturnType<typeof useTranslations<'priceProfilesPage'>>;
 };
 
@@ -92,7 +82,7 @@ function isSystemSaleProfile(profile: PriceProfileView) {
   return !profile.sellerId;
 }
 
-function ProfileSection({ title, emptyMessage, profiles, tone, isAdminView, onToggleAction, onCloneAction, t }: ProfileSectionProps) {
+function ProfileSection({ title, emptyMessage, profiles, tone, isAdminView, t }: ProfileSectionProps) {
   return (
     <section className='space-y-3'>
       <div className='flex items-center justify-between rounded-xl border border-border bg-background-secondary px-4 py-3'>
@@ -137,7 +127,7 @@ function ProfileSection({ title, emptyMessage, profiles, tone, isAdminView, onTo
                   </div>
 
                   <div className='flex items-center gap-2'>
-                    <form action={onCloneAction}>
+                    <form action={clonePriceProfileAction}>
                       <input type='hidden' name='profileId' value={profile.id} />
                       <button
                         type='submit'
@@ -147,7 +137,7 @@ function ProfileSection({ title, emptyMessage, profiles, tone, isAdminView, onTo
                       </button>
                     </form>
 
-                    <form action={onToggleAction} id={`toggle-profile-${profile.id}`}>
+                    <form action={togglePriceProfileStatusAction} id={`toggle-profile-${profile.id}`}>
                       <input type='hidden' name='profileId' value={profile.id} />
                       <Switch
                         checked={profile.isActive}
@@ -210,6 +200,28 @@ function ProfileSection({ title, emptyMessage, profiles, tone, isAdminView, onTo
   );
 }
 
+function StatsCard({
+  label,
+  value,
+  icon,
+  toneClass,
+}: {
+  label: string;
+  value: string;
+  icon: ReactNode;
+  toneClass: string;
+}) {
+  return (
+    <article className='rounded-xl border border-border bg-background-secondary p-4'>
+      <div className='mb-2 flex items-center justify-between gap-2'>
+        <p className='m-0 text-xs font-semibold uppercase tracking-[0.08em] text-foreground-muted'>{label}</p>
+        <span className={`inline-flex h-8 w-8 items-center justify-center rounded-lg ${toneClass}`}>{icon}</span>
+      </div>
+      <p className='m-0 text-2xl font-bold text-foreground'>{value}</p>
+    </article>
+  );
+}
+
 export function PriceProfilesBoard({
   products,
   costProfiles,
@@ -221,9 +233,6 @@ export function PriceProfilesBoard({
   statusFilter,
   searchQuery,
   exportHref,
-  createAction,
-  toggleAction,
-  cloneAction,
 }: PriceProfilesBoardProps) {
   const t = useTranslations('priceProfilesPage');
   const tForm = useTranslations('priceProfileForm');
@@ -240,6 +249,11 @@ export function PriceProfilesBoard({
     () => Math.max(profileStats.totalProfiles - profileStats.activeProfiles, 0),
     [profileStats.activeProfiles, profileStats.totalProfiles],
   );
+  const systemSaleProfilesCount = useMemo(() => saleProfiles.filter(profile => isSystemSaleProfile(profile)).length, [saleProfiles]);
+  const sellerSaleProfilesCount = useMemo(
+    () => Math.max(saleProfiles.length - systemSaleProfilesCount, 0),
+    [saleProfiles.length, systemSaleProfilesCount],
+  );
   const statusSegmentOptions = useMemo(
     () =>
       FILTER_OPTIONS.map(option => {
@@ -251,6 +265,72 @@ export function PriceProfilesBoard({
       }),
     [inactiveCount, profileStats.activeProfiles, profileStats.totalProfiles, t],
   );
+  const statsCards = useMemo(() => {
+    if (isAdmin) {
+      return [
+        {
+          label: t('stats.costLaneProfiles'),
+          value: String(costProfiles.length),
+          icon: <WalletCards className='h-4 w-4 text-sky-200' />,
+          toneClass: 'bg-sky-500/15',
+        },
+        {
+          label: t('stats.saleLaneProfiles'),
+          value: String(saleProfiles.length),
+          icon: <Sparkles className='h-4 w-4 text-amber-200' />,
+          toneClass: 'bg-amber-500/15',
+        },
+        {
+          label: t('stats.systemSuggestedSale'),
+          value: String(systemSaleProfilesCount),
+          icon: <CheckCircle2 className='h-4 w-4 text-emerald-200' />,
+          toneClass: 'bg-emerald-500/15',
+        },
+        {
+          label: t('stats.sellerSaleProfiles'),
+          value: String(sellerSaleProfilesCount),
+          icon: <BarChart3 className='h-4 w-4 text-violet-200' />,
+          toneClass: 'bg-violet-500/15',
+        },
+      ];
+    }
+
+    return [
+      {
+        label: t('stats.mySaleProfiles'),
+        value: String(sellerSaleProfilesCount),
+        icon: <Sparkles className='h-4 w-4 text-sky-200' />,
+        toneClass: 'bg-sky-500/15',
+      },
+      {
+        label: t('stats.systemSuggestedSale'),
+        value: String(systemSaleProfilesCount),
+        icon: <CheckCircle2 className='h-4 w-4 text-emerald-200' />,
+        toneClass: 'bg-emerald-500/15',
+      },
+      {
+        label: t('stats.pricedProducts'),
+        value: String(profileStats.pricedProductsCount),
+        icon: <WalletCards className='h-4 w-4 text-amber-200' />,
+        toneClass: 'bg-amber-500/15',
+      },
+      {
+        label: t('stats.avgProductsPerProfile'),
+        value: profileStats.averageProductsPerProfile.toFixed(1),
+        icon: <BarChart3 className='h-4 w-4 text-violet-200' />,
+        toneClass: 'bg-violet-500/15',
+      },
+    ];
+  }, [
+    costProfiles.length,
+    isAdmin,
+    profileStats.averageProductsPerProfile,
+    profileStats.pricedProductsCount,
+    saleProfiles.length,
+    sellerSaleProfilesCount,
+    systemSaleProfilesCount,
+    t,
+  ]);
 
   const hasAnyProfiles = isAdmin ? costProfiles.length > 0 || saleProfiles.length > 0 : saleProfiles.length > 0;
 
@@ -266,33 +346,35 @@ export function PriceProfilesBoard({
           <p className='mt-1 text-sm text-foreground-secondary'>{t('subtitle')}</p>
         </div>
         <div className='flex items-center gap-2'>
-          <Link
+          <Segmented
+            size='large'
+            options={statusSegmentOptions}
+            defaultValue={statusFilter}
+            styles={{
+              root: { padding: 4, minHeight: 40, height: 40 },
+              item: { height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+              label: { fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', lineHeight: 1 },
+            }}
+            onChange={value => {
+              const nextStatus = String(value) as PriceProfileStatusFilter;
+              router.push(buildPriceProfilesHref(nextStatus, searchQuery, ownerFilterValue));
+            }}
+          />
+          {/* <Link
             href={exportHref}
             className='inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground'>
             {t('exportButton')}
-          </Link>
-          <button
-            type='button'
-            onClick={() => setDrawerOpen(true)}
-            className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600'>
-            <Plus className='h-4 w-4' />
-            {t('addButton')}
-          </button>
+          </Link> */}
         </div>
       </div>
 
-      <div className='mb-6 flex flex-wrap items-start gap-4'>
-        <Segmented
-          value={statusFilter}
-          options={statusSegmentOptions}
-          className='price-profiles-status-segment'
-          size='large'
-          onChange={value => {
-            const nextStatus = String(value) as PriceProfileStatusFilter;
-            router.push(buildPriceProfilesHref(nextStatus, searchQuery, ownerFilterValue));
-          }}
-        />
+      <div className='mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4'>
+        {statsCards.map(card => (
+          <StatsCard key={card.label} label={card.label} value={card.value} icon={card.icon} toneClass={card.toneClass} />
+        ))}
+      </div>
 
+      <div className='mb-6 flex flex-wrap items-start gap-4'>
         {isAdmin ? (
           <Select
             value={ownerFilterValue}
@@ -302,7 +384,16 @@ export function PriceProfilesBoard({
               router.push(buildPriceProfilesHref(statusFilter, searchQuery, nextOwner));
             }}
             size='large'
-            className='price-profiles-owner-select w-full min-w-56 max-w-xs'
+            allowClear
+            showSearch
+            showScrollBar
+            styles={{
+              content: { color: '#fff' },
+              root: { paddingInline: 12, paddingBlock: 4, minHeight: 40, height: 40, width: 300, backgroundColor: '#171717' },
+              item: { height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+              suffix: { color: '#fff' },
+              clear: { color: '#fff', backgroundColor: '#171717' },
+            }}
             options={[
               { value: 'ALL', label: t('ownerFilter.all') },
               { value: 'SYSTEM', label: t('ownerFilter.system') },
@@ -313,21 +404,30 @@ export function PriceProfilesBoard({
             ]}
           />
         ) : null}
+        <div className='flex-1'>
+          <form method='get' className='relative flex-1 max-w-md'>
+            {statusFilter !== 'ALL' ? <input type='hidden' name='status' value={statusFilter} /> : null}
+            {isAdmin && ownerFilterValue !== 'ALL' ? <input type='hidden' name='owner' value={ownerFilterValue} /> : null}
+            <div className='relative'>
+              <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-secondary' />
+              <input
+                type='text'
+                name='q'
+                defaultValue={searchQuery}
+                placeholder={t('searchPlaceholder')}
+                className='h-10 w-full rounded-lg border border-border bg-background-secondary pl-10 pr-4 text-foreground placeholder:text-foreground-secondary focus:outline-none focus:ring-2 focus:ring-primary-500'
+              />
+            </div>
+          </form>
+        </div>
 
-        <form method='get' className='relative ml-auto flex-1 max-w-md'>
-          {statusFilter !== 'ALL' ? <input type='hidden' name='status' value={statusFilter} /> : null}
-          {isAdmin && ownerFilterValue !== 'ALL' ? <input type='hidden' name='owner' value={ownerFilterValue} /> : null}
-          <div className='relative'>
-            <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-secondary' />
-            <input
-              type='text'
-              name='q'
-              defaultValue={searchQuery}
-              placeholder={t('searchPlaceholder')}
-              className='h-10 w-full rounded-lg border border-border bg-background-secondary pl-10 pr-4 text-foreground placeholder:text-foreground-secondary focus:outline-none focus:ring-2 focus:ring-primary-500'
-            />
-          </div>
-        </form>
+        <button
+          type='button'
+          onClick={() => setDrawerOpen(true)}
+          className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600'>
+          <Plus className='h-4 w-4' />
+          {t('addButton')}
+        </button>
       </div>
 
       {!hasAnyProfiles ? (
@@ -338,28 +438,10 @@ export function PriceProfilesBoard({
       ) : (
         <div className='space-y-5'>
           {isAdmin ? (
-            <ProfileSection
-              title={t('lanes.cost')}
-              emptyMessage={t('emptyCost')}
-              profiles={costProfiles}
-              tone='cost'
-              isAdminView={isAdmin}
-              onToggleAction={toggleAction}
-              onCloneAction={cloneAction}
-              t={t}
-            />
+            <ProfileSection title={t('lanes.cost')} emptyMessage={t('emptyCost')} profiles={costProfiles} tone='cost' isAdminView={isAdmin} t={t} />
           ) : null}
 
-          <ProfileSection
-            title={t('lanes.sale')}
-            emptyMessage={t('emptySale')}
-            profiles={saleProfiles}
-            tone='sale'
-            isAdminView={isAdmin}
-            onToggleAction={toggleAction}
-            onCloneAction={cloneAction}
-            t={t}
-          />
+          <ProfileSection title={t('lanes.sale')} emptyMessage={t('emptySale')} profiles={saleProfiles} tone='sale' isAdminView={isAdmin} t={t} />
         </div>
       )}
 
@@ -401,7 +483,6 @@ export function PriceProfilesBoard({
           ref={createFormRef}
           formId={CREATE_PROFILE_FORM_ID}
           products={products}
-          action={createAction}
           canManageCost={isAdmin}
           onSubmitStateChange={setCreateSubmitState}
           onCreated={() => setDrawerOpen(false)}

@@ -1,5 +1,3 @@
-'use client';
-
 import { Bell, ChevronDown, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
@@ -58,4 +56,3 @@ export function AppHeader({ currentSeller }: AppHeaderProps) {
     </header>
   );
 }
-

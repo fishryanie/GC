@@ -161,8 +161,11 @@
     "heroTitle": "Price Studio: lane vốn và lane bán",
     "heroSubtitle": "Giao diện chia 2 lane độc lập, giúp theo dõi profile đang chạy và cập nhật nhanh mà không kéo sâu.",
     "stats": {
-      "totalProfiles": "Tổng profile",
-      "activeProfiles": "Đang hoạt động",
+      "costLaneProfiles": "Profile lane vốn",
+      "saleLaneProfiles": "Profile lane bán",
+      "systemSuggestedSale": "Giá bán hệ thống",
+      "sellerSaleProfiles": "Giá bán seller tạo",
+      "mySaleProfiles": "Profile giá bán của tôi",
       "pricedProducts": "SP đã được áp giá",
       "avgProductsPerProfile": "TB sản phẩm / profile"
     },

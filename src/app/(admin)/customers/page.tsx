@@ -1,10 +1,3 @@
-import {
-  resetSellerPasswordAction,
-  toggleCustomerStatusAction,
-  toggleSellerStatusAction,
-  upsertCustomerAction,
-  upsertSellerAction,
-} from '@/app/(admin)/customers/actions';
 import { CustomersSellersBoard } from '@/app/(admin)/customers/components/customers-sellers-board';
 import { requireAuthSession } from 'lib/auth';
 import { getCustomersPageData, getSellersPageData } from 'lib/data';
@@ -104,11 +97,6 @@ export default async function CustomersPage({
         isAdmin={session.seller.role === 'ADMIN'}
         currentSellerId={session.seller.id}
         exportHref={exportHref}
-        upsertCustomerAction={upsertCustomerAction}
-        toggleCustomerStatusAction={toggleCustomerStatusAction}
-        upsertSellerAction={upsertSellerAction}
-        toggleSellerStatusAction={toggleSellerStatusAction}
-        resetSellerPasswordAction={resetSellerPasswordAction}
       />
     </div>
   );

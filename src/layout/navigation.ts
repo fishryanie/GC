@@ -1,4 +1,5 @@
 import { BarChart3, Calendar, FileText, LayoutDashboard, Package, ShoppingCart, Users, type LucideIcon } from "lucide-react";
+import { appLocales } from "i18n/config";
 import menuConfig from "./menu.json";
 import type { NavigationLabelKey } from "./types";
 
@@ -42,19 +43,34 @@ const typedConfig = menuConfig as {
 export const desktopNavigationItems = buildNavigationItems(typedConfig.desktop);
 export const mobileNavigationItems = buildNavigationItems(typedConfig.mobile);
 
-export function isPathActive(pathname: string, href: string) {
-  if (href === "/dashboard") {
-    return pathname === "/dashboard";
+function normalizePath(pathname: string) {
+  const rawPath = pathname.split("?")[0].split("#")[0];
+  const trimmedPath = rawPath === "/" ? "/" : rawPath.replace(/\/+$/, "");
+  const segments = trimmedPath.split("/").filter(Boolean);
+
+  if (segments.length > 0 && appLocales.includes(segments[0] as (typeof appLocales)[number])) {
+    const withoutLocale = `/${segments.slice(1).join("/")}`;
+    return withoutLocale === "/" ? "/" : withoutLocale;
   }
 
-  if (href === "/orders/new") {
-    return pathname === "/orders/new";
-  }
-
-  if (href === "/orders") {
-    return pathname === "/orders";
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return trimmedPath || "/";
 }
 
+export function isPathActive(pathname: string, href: string) {
+  const currentPath = normalizePath(pathname);
+  const targetPath = normalizePath(href);
+
+  if (targetPath === "/dashboard") {
+    return currentPath === "/dashboard";
+  }
+
+  if (targetPath === "/orders/new") {
+    return currentPath === "/orders/new";
+  }
+
+  if (targetPath === "/orders") {
+    return currentPath === "/orders";
+  }
+
+  return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+}

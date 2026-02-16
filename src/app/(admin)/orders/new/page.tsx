@@ -5,7 +5,6 @@ import { getFlashMessage } from 'lib/flash';
 import { resolveSearchParams } from 'lib/search-params';
 import { getSearchValue } from 'lib/search-value';
 import { getTranslations } from 'next-intl/server';
-import { createOrderAction } from '../actions';
 import { OrderBuilder } from './components/order-builder';
 
 export default async function NewOrderPage({
@@ -54,7 +53,6 @@ export default async function NewOrderPage({
         hasActiveCostProfile={Boolean(activeCostProfile)}
         canViewCost={canViewCost}
         initialCustomerId={selectedCustomerId}
-        action={createOrderAction}
       />
     </div>
   );

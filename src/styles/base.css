@@ -48,14 +48,14 @@
       transform: translateX(260%);
     }
   }
-
-  button[data-submit-pending="true"] {
+  /* 
+  button[data-submit-pending='true'] {
     pointer-events: none;
     opacity: 0.82;
-  }
+  } */
 
-  button[data-submit-pending="true"]::after {
-    content: "";
+  /* button[data-submit-pending='true']::after {
+    content: '';
     display: inline-block;
     height: 0.82rem;
     width: 0.82rem;
@@ -65,7 +65,7 @@
     border-right-color: transparent;
     animation: gc-spin 0.8s linear infinite;
     vertical-align: -2px;
-  }
+  } */
 
   a {
     color: inherit;
@@ -83,7 +83,7 @@
 
   ::-webkit-scrollbar-thumb {
     background: var(--background-tertiary);
-    border-radius: 9999px;
+    /* border-radius: 9999px; */
   }
 
   ::-webkit-scrollbar-thumb:hover {

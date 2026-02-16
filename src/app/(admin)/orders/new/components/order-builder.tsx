@@ -1,6 +1,7 @@
 "use client";
 
 import { Select } from "antd";
+import { createOrderAction } from "../../actions";
 import { useMemo, useState, type FormEvent } from "react";
 import {
   Trash2,
@@ -24,7 +25,6 @@ type OrderBuilderProps = {
   hasActiveCostProfile: boolean;
   canViewCost: boolean;
   initialCustomerId?: string;
-  action: (formData: FormData) => void | Promise<void>;
 };
 
 type DraftLine = {
@@ -78,7 +78,6 @@ export function OrderBuilder({
   hasActiveCostProfile,
   canViewCost,
   initialCustomerId,
-  action,
 }: OrderBuilderProps) {
   const t = useTranslations("orderBuilder");
 
@@ -343,7 +342,7 @@ export function OrderBuilder({
   }
 
   return (
-    <form action={action} className="w-full space-y-4">
+    <form action={createOrderAction} className="w-full space-y-4">
       <input
         type="hidden"
         name="itemsJson"

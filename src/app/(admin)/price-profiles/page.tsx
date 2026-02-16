@@ -3,7 +3,6 @@ import { getPriceProfileStats, listPriceProfiles, listProducts, listSellers } fr
 import { resolveSearchParams } from 'lib/search-params';
 import { getSearchValue } from 'lib/search-value';
 import { Types } from 'mongoose';
-import { clonePriceProfileAction, createPriceProfileAction, togglePriceProfileStatusAction } from './actions';
 import { PriceProfilesBoard } from './components/price-profiles-board';
 
 type PriceProfileFilter = 'ALL' | 'ACTIVE' | 'INACTIVE';
@@ -95,9 +94,6 @@ export default async function PriceProfilesPage({
         statusFilter={statusFilter}
         searchQuery={searchQuery}
         exportHref={exportHref}
-        createAction={createPriceProfileAction}
-        toggleAction={togglePriceProfileStatusAction}
-        cloneAction={clonePriceProfileAction}
       />
     </div>
   );

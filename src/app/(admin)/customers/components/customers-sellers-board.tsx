@@ -1,6 +1,13 @@
 'use client';
 
 import { Select } from 'antd';
+import {
+  resetSellerPasswordAction,
+  toggleCustomerStatusAction,
+  toggleSellerStatusAction,
+  upsertCustomerAction,
+  upsertSellerAction,
+} from '../actions';
 import type { CustomersPageData, SellersPageData } from 'lib/data';
 import { formatCurrency, formatDateTime } from 'lib/format';
 import { CheckCircle2, Eye, KeyRound, Lock, Mail, Pencil, Phone, Plus, Search, Shield, User, UserRound, Users, X } from 'lucide-react';
@@ -20,11 +27,6 @@ type CustomersSellersBoardProps = {
   isAdmin: boolean;
   currentSellerId: string;
   exportHref: string;
-  upsertCustomerAction: (formData: FormData) => Promise<void>;
-  toggleCustomerStatusAction: (formData: FormData) => Promise<void>;
-  upsertSellerAction: (formData: FormData) => Promise<void>;
-  toggleSellerStatusAction: (formData: FormData) => Promise<void>;
-  resetSellerPasswordAction: (formData: FormData) => Promise<void>;
 };
 
 const CUSTOMER_STATUS_OPTIONS: Array<{
@@ -65,11 +67,6 @@ export function CustomersSellersBoard({
   isAdmin,
   currentSellerId,
   exportHref,
-  upsertCustomerAction,
-  toggleCustomerStatusAction,
-  upsertSellerAction,
-  toggleSellerStatusAction,
-  resetSellerPasswordAction,
 }: CustomersSellersBoardProps) {
   const t = useTranslations('customersPage');
 

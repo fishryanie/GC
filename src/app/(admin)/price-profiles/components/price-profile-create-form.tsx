@@ -2,6 +2,7 @@
 
 import { faker } from '@faker-js/faker';
 import { Checkbox, Form, Input, InputNumber, Modal, Select, Space, message } from 'antd';
+import { createPriceProfileAction, type PriceProfileCreateResult } from '../actions';
 import type { PriceProfileType } from 'lib/constants';
 import { PRICE_PROFILE_TYPES } from 'lib/constants';
 import { useTranslations } from 'next-intl';
@@ -17,11 +18,6 @@ type PriceProfileCreateFormValues = {
   prices?: Record<string, number | null>;
 };
 
-export type PriceProfileCreateResult = {
-  ok: boolean;
-  message: string;
-};
-
 export type PriceProfileSubmitState = {
   canSubmit: boolean;
   isSubmitting: boolean;
@@ -34,14 +30,13 @@ export type PriceProfileCreateFormHandle = {
 type PriceProfileCreateFormProps = {
   formId: string;
   products: ProductView[];
-  action: (formData: FormData) => Promise<PriceProfileCreateResult | void>;
   canManageCost: boolean;
   onSubmitStateChange?: (state: PriceProfileSubmitState) => void;
   onCreated?: () => void;
 };
 
 export const PriceProfileCreateForm = forwardRef<PriceProfileCreateFormHandle, PriceProfileCreateFormProps>(function PriceProfileCreateForm(
-  { formId, products, action, canManageCost, onSubmitStateChange, onCreated },
+  { formId, products, canManageCost, onSubmitStateChange, onCreated },
   ref,
 ) {
   const router = useRouter();
@@ -117,7 +112,7 @@ export const PriceProfileCreateForm = forwardRef<PriceProfileCreateFormHandle, P
         try {
           const result = await new Promise<PriceProfileCreateResult | void>((resolve, reject) => {
             startTransition(() => {
-              action(formData).then(resolve).catch(reject);
+              createPriceProfileAction(formData).then(resolve).catch(reject);
             });
           });
           const isSuccess = result?.ok ?? true;

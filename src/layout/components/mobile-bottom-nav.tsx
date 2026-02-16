@@ -2,13 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { isPathActive, mobileNavigationItems } from '../navigation';
 
-type MobileBottomNavProps = {
-  pathname: string;
-};
-
-export function MobileBottomNav({ pathname }: MobileBottomNavProps) {
+export function MobileBottomNav() {
+  const pathname = usePathname();
   const tShell = useTranslations('shell');
 
   return (
@@ -22,8 +20,8 @@ export function MobileBottomNav({ pathname }: MobileBottomNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`gc-mobile-nav-link flex h-full flex-1 flex-col items-center justify-center py-2 ${
-                active ? 'gc-mobile-nav-link-active' : ''
+              className={`flex h-full flex-1 flex-col items-center justify-center py-2 transition-colors ${
+                active ? '!text-primary-500' : '!text-foreground-muted hover:!text-foreground'
               }`}>
               <Icon className='h-5 w-5' />
               <span className='mt-1 text-[11px] font-medium'>{tShell(`nav.${item.labelKey}`)}</span>

@@ -1,6 +1,7 @@
 'use client';
 
 import { Switch } from 'antd';
+import { deleteProductAction, toggleProductStatusAction, upsertProductAction } from '../actions';
 import { formatCurrency } from 'lib/format';
 import { Edit2, Package, PauseCircle, PlayCircle, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -31,9 +32,6 @@ type ProductsGridProps = {
   searchQuery: string;
   defaultSalePrices: Record<string, number>;
   exportHref: string;
-  upsertAction: (formData: FormData) => Promise<void>;
-  toggleStatusAction: (formData: FormData) => Promise<void>;
-  deleteAction: (formData: FormData) => Promise<void>;
 };
 
 type ModalMode = 'create' | 'edit';
@@ -45,9 +43,6 @@ export function ProductsGrid({
   searchQuery,
   defaultSalePrices,
   exportHref,
-  upsertAction,
-  toggleStatusAction,
-  deleteAction,
 }: ProductsGridProps) {
   const t = useTranslations('products');
   const [modalMode, setModalMode] = useState<ModalMode | null>(null);
@@ -162,7 +157,7 @@ export function ProductsGrid({
                       <Edit2 className='h-4 w-4' />
                     </button>
 
-                    <form action={deleteAction}>
+                    <form action={deleteProductAction}>
                       <input type='hidden' name='productId' value={product.id} />
                       <button
                         type='submit'
@@ -180,7 +175,7 @@ export function ProductsGrid({
 
               <div className='flex items-center justify-between'>
                 <span className='font-semibold text-primary-500'>{formatCurrency(defaultSalePrices[product.id] ?? 0)}</span>
-                <form action={toggleStatusAction} id={`toggle-product-${product.id}`}>
+                <form action={toggleProductStatusAction} id={`toggle-product-${product.id}`}>
                   <input type='hidden' name='productId' value={product.id} />
                   <Switch
                     checked={product.isActive}
@@ -214,7 +209,7 @@ export function ProductsGrid({
               </button>
             </div>
 
-            <form key={`${modalMode}-${editingProduct?.id ?? 'new'}`} action={upsertAction} className='space-y-4 p-4'>
+            <form key={`${modalMode}-${editingProduct?.id ?? 'new'}`} action={upsertProductAction} className='space-y-4 p-4'>
               {modalMode === 'edit' && editingProduct ? <input type='hidden' name='id' value={editingProduct.id} /> : null}
 
               <div>

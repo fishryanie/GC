@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { Be_Vietnam_Pro, JetBrains_Mono } from 'next/font/google';
-import '../css/globals.css';
+import 'styles/index.css';
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
