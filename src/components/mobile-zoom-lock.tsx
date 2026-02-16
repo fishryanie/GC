@@ -25,27 +25,16 @@ export function MobileZoomLock() {
       }
     };
 
-    let lastTouchEnd = 0;
-    const preventDoubleTap = (event: TouchEvent) => {
-      const now = Date.now();
-      if (now - lastTouchEnd <= 300) {
-        event.preventDefault();
-      }
-      lastTouchEnd = now;
-    };
-
     document.addEventListener("gesturestart", preventDefault, { passive: false });
     document.addEventListener("gesturechange", preventDefault, { passive: false });
     document.addEventListener("gestureend", preventDefault, { passive: false });
     document.addEventListener("touchmove", preventMultiTouch, { passive: false });
-    document.addEventListener("touchend", preventDoubleTap, { passive: false });
 
     return () => {
       document.removeEventListener("gesturestart", preventDefault);
       document.removeEventListener("gesturechange", preventDefault);
       document.removeEventListener("gestureend", preventDefault);
       document.removeEventListener("touchmove", preventMultiTouch);
-      document.removeEventListener("touchend", preventDoubleTap);
     };
   }, []);
 

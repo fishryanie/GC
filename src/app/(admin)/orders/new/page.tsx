@@ -39,7 +39,7 @@ export default async function NewOrderPage({
           </span>
           {t('tag')}
         </p>
-        <h2 className='mb-1 mt-2 text-3xl font-bold leading-tight text-foreground'>{t('title')}</h2>
+        <h2 className='mb-1 mt-2 text-2xl font-bold leading-tight text-foreground sm:text-3xl'>{t('title')}</h2>
         <p className='m-0 text-foreground-secondary'>{t('subtitle')}</p>
       </section>
 

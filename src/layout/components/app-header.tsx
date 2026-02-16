@@ -1,6 +1,8 @@
-import { Bell, ChevronDown, Search } from 'lucide-react';
+import { Bell, ChevronDown, Plus, Search, ShoppingCart } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import Image from 'next/image';
+import Link from 'next/link';
+import { HeaderLanguageSwitcher } from './header-language-switcher';
 import type { CurrentSeller } from '../types';
 
 type AppHeaderProps = {
@@ -34,6 +36,18 @@ export function AppHeader({ currentSeller }: AppHeaderProps) {
           <span className='lg:hidden'>Admin</span>
           <ChevronDown className='h-4 w-4' />
         </button>
+
+        <HeaderLanguageSwitcher />
+
+        <Link
+          href='/orders/new'
+          aria-label={tCommon('newOrderAria')}
+          className='relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background-tertiary !text-white transition-colors hover:!text-white md:hidden'>
+          <ShoppingCart className='h-[17px] w-[17px]' />
+          <span className='absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-white'>
+            <Plus className='h-2.5 w-2.5' />
+          </span>
+        </Link>
 
         <button
           type='button'

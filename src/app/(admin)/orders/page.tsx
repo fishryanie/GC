@@ -8,8 +8,9 @@ import { COLLECTION_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATU
 import { getOrdersPageData, listSellers } from 'lib/data';
 import { formatCurrency, formatDate } from 'lib/format';
 import { resolveSearchParams } from 'lib/search-params';
-import { CheckCircle, Clock, Download, Receipt, Search, TrendingUp } from 'lucide-react';
+import { CheckCircle, Clock, Download, Plus, Receipt, Search, TrendingUp } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import Link from 'next/link';
 
 function getSearchValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
@@ -234,13 +235,21 @@ export default async function OrdersPage({
             <h1 className='mb-1 mt-2 text-2xl font-bold text-foreground'>{tPage('heroTitle')}</h1>
             <p className='m-0 text-sm text-foreground-secondary'>{tPage('heroSubtitle')}</p>
           </div>
-          <a
-            href={exportHref}
-            download
-            className='inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background-secondary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:border-primary-500/40 hover:text-foreground'>
-            <Download className='h-4 w-4' />
-            {tPage('exportButton')}
-          </a>
+          <div className='flex flex-wrap items-center gap-2'>
+            <Link
+              href='/orders/new'
+              className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-600'>
+              <Plus className='h-4 w-4' />
+              {tPage('createOrderButton')}
+            </Link>
+            <a
+              href={exportHref}
+              download
+              className='inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background-secondary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:border-primary-500/40 hover:text-foreground'>
+              <Download className='h-4 w-4' />
+              {tPage('exportButton')}
+            </a>
+          </div>
         </div>
       </section>
 
@@ -625,7 +634,7 @@ export default async function OrdersPage({
                         </td>
 
                         <td className='px-3 py-2.5 text-right'>
-                          <OrderDetailsModal order={order} canViewCost={canViewCost} isAdmin={isAdmin} compact />
+                          <OrderDetailsModal order={order} canViewCost={canViewCost} compact />
                         </td>
                       </tr>
                     );

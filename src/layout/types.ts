@@ -5,5 +5,12 @@ export type CurrentSeller = {
   role: "ADMIN" | "SELLER";
 };
 
-export type NavigationLabelKey = "dashboard" | "products" | "priceProfiles" | "newOrder" | "orders" | "customers" | "home";
-
+export type NavigationLabelKey =
+  | "dashboard"
+  | "products"
+  | "priceProfiles"
+  | "newOrder"
+  | "orders"
+  | "customers"
+  | "home"
+  | "profileShort";

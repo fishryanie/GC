@@ -43,9 +43,9 @@
       "icon": "Package"
     },
     {
-      "href": "/orders/new",
-      "labelKey": "newOrder",
-      "icon": "ShoppingCart"
+      "href": "/price-profiles",
+      "labelKey": "priceProfiles",
+      "icon": "BarChart3"
     },
     {
       "href": "/orders",
