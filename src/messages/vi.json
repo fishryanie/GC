@@ -214,6 +214,11 @@
     "table": {
       "product": "Sản phẩm",
       "pricePerKg": "Giá / kg"
+    },
+    "profileCount": "{count} profile",
+    "laneHint": {
+      "cost": "Mặt bằng giá vốn dùng để tracking biên lợi nhuận.",
+      "sale": "Biểu giá bán dùng để lên bill và báo giá."
     }
   },
   "priceProfileForm": {

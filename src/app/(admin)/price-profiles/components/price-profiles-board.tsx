@@ -83,12 +83,26 @@ function isSystemSaleProfile(profile: PriceProfileView) {
 }
 
 function ProfileSection({ title, emptyMessage, profiles, tone, isAdminView, t }: ProfileSectionProps) {
+  const laneToneClass = tone === 'cost' ? 'bg-sky-500/15 text-sky-300' : 'bg-amber-500/15 text-amber-300';
+  const countToneClass = tone === 'cost' ? 'border-sky-500/30 bg-sky-500/10 text-sky-200' : 'border-amber-500/30 bg-amber-500/10 text-amber-200';
+
   return (
     <section className='space-y-3'>
-      <div className='flex items-center justify-between rounded-xl border border-border bg-background-secondary px-4 py-3'>
-        <h3 className='m-0 text-base font-semibold text-foreground'>
-          {title} ({profiles.length})
-        </h3>
+      <div className='flex items-center justify-between rounded-2xl border border-border bg-background-secondary px-4 py-3'>
+        <div className='min-w-0 flex items-center gap-3'>
+          <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${laneToneClass}`}>
+            {tone === 'cost' ? <WalletCards className='h-5 w-5' /> : <Sparkles className='h-5 w-5' />}
+          </span>
+
+          <div className='min-w-0'>
+            <h3 className='m-0 truncate text-base font-semibold text-foreground'>{title}</h3>
+            <p className='m-0 text-xs text-foreground-secondary'>{t(`laneHint.${tone}`)}</p>
+          </div>
+        </div>
+
+        <span className={`inline-flex h-8 items-center rounded-full border px-3 text-sm font-semibold ${countToneClass}`}>
+          {t('profileCount', { count: profiles.length })}
+        </span>
       </div>
 
       {!profiles.length ? (

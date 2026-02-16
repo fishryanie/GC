@@ -72,15 +72,16 @@ export function ProductsGrid({
 
   return (
     <>
-      <div className='mb-6 flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold text-foreground'>{t('title')}</h1>
-          <p className='text-foreground-secondary'>{t('subtitle')}</p>
+      <div className='mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='min-w-0'>
+          <h1 className='text-xl font-bold text-foreground sm:text-2xl'>{t('title')}</h1>
+          <p className='mt-1 text-sm text-foreground-secondary sm:text-base'>{t('subtitle')}</p>
         </div>
-        <div className='flex items-center gap-2'>
+
+        <div className='grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:items-center sm:justify-end'>
           <Link
             href={exportHref}
-            className='inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground'>
+            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground sm:w-auto sm:justify-start'>
             {t('exportButton')}
           </Link>
           <button
@@ -89,36 +90,38 @@ export function ProductsGrid({
               setEditingProduct(null);
               setModalMode('create');
             }}
-            className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600'>
+            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600 sm:w-auto sm:justify-start'>
             <Plus className='h-4 w-4' />
             {t('addProduct')}
           </button>
         </div>
       </div>
 
-      <div className='mb-6 flex gap-4'>
-        {FILTER_OPTIONS.map(option => {
-          const Icon = option.icon;
-          const isActive = activeFilter === option.value;
-          const count =
-            option.value === 'ALL' ? productStats.totalProducts : option.value === 'ACTIVE' ? productStats.activeProducts : productStats.inactiveProducts;
+      <div className='mb-6 flex flex-col gap-3 lg:flex-row lg:items-center'>
+        <div className='grid grid-cols-1 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap'>
+          {FILTER_OPTIONS.map(option => {
+            const Icon = option.icon;
+            const isActive = activeFilter === option.value;
+            const count =
+              option.value === 'ALL' ? productStats.totalProducts : option.value === 'ACTIVE' ? productStats.activeProducts : productStats.inactiveProducts;
 
-          return (
-            <Link
-              key={option.value}
-              href={buildProductsHref(option.value)}
-              className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors ${
-                isActive
-                  ? '!bg-[var(--primary-500)] !text-white'
-                  : '!bg-[var(--background-secondary)] !text-[var(--foreground-secondary)] hover:!bg-[var(--background-hover)] hover:!text-[var(--foreground)]'
-              }`}>
-              <Icon className='h-4 w-4' />
-              {t(`filters.${option.labelKey}`)} ({count})
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={option.value}
+                href={buildProductsHref(option.value)}
+                className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors sm:justify-start lg:w-auto ${
+                  isActive
+                    ? '!bg-[var(--primary-500)] !text-white'
+                    : '!bg-[var(--background-secondary)] !text-[var(--foreground-secondary)] hover:!bg-[var(--background-hover)] hover:!text-[var(--foreground)]'
+                }`}>
+                <Icon className='h-4 w-4' />
+                {t(`filters.${option.labelKey}`)} ({count})
+              </Link>
+            );
+          })}
+        </div>
 
-        <form method='get' className='relative ml-auto flex-1 max-w-md'>
+        <form method='get' className='relative w-full lg:ml-auto lg:max-w-md'>
           {activeFilter !== 'ALL' ? <input type='hidden' name='status' value={activeFilter} /> : null}
           <Search className='pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-secondary' />
           <input

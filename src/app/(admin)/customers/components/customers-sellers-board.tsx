@@ -112,16 +112,16 @@ export function CustomersSellersBoard({
 
   return (
     <>
-      <div className='mb-6 flex items-center justify-between'>
-        <div>
-          <h1 className='text-2xl font-bold text-foreground'>{t('title')}</h1>
-          <p className='text-foreground-secondary'>{t('subtitle')}</p>
+      <div className='mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+        <div className='min-w-0'>
+          <h1 className='text-xl font-bold text-foreground sm:text-2xl'>{t('title')}</h1>
+          <p className='mt-1 text-sm text-foreground-secondary sm:text-base'>{t('subtitle')}</p>
         </div>
 
-        <div className='flex items-center gap-2'>
+        <div className='grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:items-center sm:justify-end'>
           <Link
             href={exportHref}
-            className='inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground'>
+            className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background-tertiary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:text-foreground sm:w-auto sm:justify-start'>
             {t('exportButton')}
           </Link>
 
@@ -132,7 +132,7 @@ export function CustomersSellersBoard({
                 setEditingCustomer(null);
                 setCustomerModalMode('create');
               }}
-              className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600'>
+              className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600 sm:w-auto sm:justify-start'>
               <Plus className='h-4 w-4' />
               {t('customers.addButton')}
             </button>
@@ -144,7 +144,7 @@ export function CustomersSellersBoard({
                 setSellerRoleDraft('SELLER');
                 setSellerModalMode('create');
               }}
-              className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600'>
+              className='inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-medium text-white transition-colors hover:bg-primary-600 sm:w-auto sm:justify-start'>
               <Plus className='h-4 w-4' />
               {t('sellers.addButton')}
             </button>
@@ -152,10 +152,10 @@ export function CustomersSellersBoard({
         </div>
       </div>
 
-      <div className='mb-4 flex flex-wrap items-center gap-2'>
+      <div className='mb-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center'>
         <Link
           href='/customers?tab=customers'
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors sm:w-auto sm:justify-start ${
             activeTab === 'customers' ? '!bg-[#22c55e] !text-white' : '!bg-[#171717] !text-[#a3a3a3] hover:!bg-[#262626] hover:!text-[#fafafa]'
           }`}>
           <Users className='h-4 w-4' />
@@ -163,7 +163,7 @@ export function CustomersSellersBoard({
         </Link>
         <Link
           href='/customers?tab=sellers'
-          className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+          className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors sm:w-auto sm:justify-start ${
             activeTab === 'sellers' ? '!bg-[#22c55e] !text-white' : '!bg-[#171717] !text-[#a3a3a3] hover:!bg-[#262626] hover:!text-[#fafafa]'
           }`}>
           <Shield className='h-4 w-4' />

@@ -154,7 +154,7 @@ export function PwaMobileInstall() {
   }
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/65 p-3 md:hidden">
+    <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-black/65 p-3">
       <div className="w-full max-w-md rounded-2xl border border-border bg-background-secondary p-4 shadow-2xl">
         <div className="mb-3 flex items-start justify-between gap-2">
           <div className="flex items-start gap-2.5">

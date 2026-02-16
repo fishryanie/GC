@@ -3,13 +3,22 @@
   body {
     user-select: none;
     -webkit-user-select: none;
+    touch-action: pan-x pan-y;
   }
 
   input,
   textarea,
   select,
   button {
-    /* font-size: 16px !important; */
+    font-size: 16px !important;
+  }
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-input-number-input,
+  .ant-select-selector,
+  .ant-picker-input > input {
+    font-size: 16px !important;
   }
 
   input,

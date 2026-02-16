@@ -214,6 +214,11 @@
     "table": {
       "product": "Product",
       "pricePerKg": "Price / kg"
+    },
+    "profileCount": "{count} profiles",
+    "laneHint": {
+      "cost": "Cost baseline used for margin tracking.",
+      "sale": "Sale profiles for billing and quoting."
     }
   },
   "priceProfileForm": {
