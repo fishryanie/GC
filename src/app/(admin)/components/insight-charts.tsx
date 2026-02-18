@@ -85,7 +85,7 @@ export function InsightLineChartCard({
   const { path, areaPath, points } = buildLineChartGeometry(safeData);
 
   return (
-    <article className={`rounded-xl border border-border bg-background-secondary p-4${resolveClassName(className)}`}>
+    <article className={`min-w-0 rounded-xl border border-border bg-background-secondary p-4${resolveClassName(className)}`}>
       <header className="mb-3">
         <h3 className="m-0 text-sm font-semibold text-foreground">{title}</h3>
         {subtitle ? <p className="m-0 mt-1 text-xs text-foreground-secondary">{subtitle}</p> : null}
@@ -160,7 +160,7 @@ export function InsightDonutChartCard({
   const { total, gradient } = buildDonutGradient(normalized);
 
   return (
-    <article className={`rounded-xl border border-border bg-background-secondary p-4${resolveClassName(className)}`}>
+    <article className={`min-w-0 rounded-xl border border-border bg-background-secondary p-4${resolveClassName(className)}`}>
       <header className="mb-3">
         <h3 className="m-0 text-sm font-semibold text-foreground">{title}</h3>
         {subtitle ? <p className="m-0 mt-1 text-xs text-foreground-secondary">{subtitle}</p> : null}
@@ -171,23 +171,25 @@ export function InsightDonutChartCard({
           {emptyLabel}
         </div>
       ) : (
-        <div className="flex items-center gap-4">
-          <div className="relative h-28 w-28 shrink-0">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="relative h-24 w-24 shrink-0 2xl:h-28 2xl:w-28">
             <div className="h-full w-full rounded-full" style={{ background: gradient }} />
-            <div className="absolute inset-[18px] flex items-center justify-center rounded-full bg-background-secondary text-xs font-semibold text-foreground">
+            <div className="absolute inset-[15px] flex items-center justify-center rounded-full bg-background-secondary text-xs font-semibold text-foreground 2xl:inset-[18px]">
               {valueFormatter(total)}
             </div>
           </div>
 
-          <div className="flex-1 space-y-2">
+          <div className="min-w-0 flex-1 space-y-2">
             {normalized.map((item) => {
               const percent = total > 0 ? (item.value / total) * 100 : 0;
               return (
-                <div key={item.label} className="flex items-center gap-2 text-xs">
+                <div key={item.label} className="flex min-w-0 items-center gap-2 text-xs">
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="min-w-0 flex-1 truncate text-foreground-secondary">{item.label}</span>
-                  <span className="font-medium text-foreground">{valueFormatter(item.value)}</span>
-                  <span className="text-foreground-muted">({percent.toFixed(0)}%)</span>
+                  <span className="shrink-0 whitespace-nowrap font-medium text-foreground">
+                    {valueFormatter(item.value)}
+                    <span className="ml-1 text-foreground-muted">({percent.toFixed(0)}%)</span>
+                  </span>
                 </div>
               );
             })}
@@ -210,7 +212,7 @@ export function InsightHorizontalBarsCard({
   const maxValue = normalized.reduce((current, item) => Math.max(current, item.value), 0);
 
   return (
-    <article className={`rounded-xl border border-border bg-background-secondary p-4${resolveClassName(className)}`}>
+    <article className={`min-w-0 rounded-xl border border-border bg-background-secondary p-4${resolveClassName(className)}`}>
       <header className="mb-3">
         <h3 className="m-0 text-sm font-semibold text-foreground">{title}</h3>
         {subtitle ? <p className="m-0 mt-1 text-xs text-foreground-secondary">{subtitle}</p> : null}
@@ -227,8 +229,8 @@ export function InsightHorizontalBarsCard({
             return (
               <div key={item.label}>
                 <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate text-foreground-secondary">{item.label}</span>
-                  <span className="font-medium text-foreground">{valueFormatter(item.value)}</span>
+                  <span className="min-w-0 flex-1 truncate text-foreground-secondary">{item.label}</span>
+                  <span className="shrink-0 font-medium text-foreground">{valueFormatter(item.value)}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-background-tertiary">
                   <div className="h-full rounded-full transition-[width]" style={{ width: `${widthPercent}%`, backgroundColor: item.color }} />

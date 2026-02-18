@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "GC",
+    "appName": "GC Flow",
     "operations": "Operations",
     "searchPlaceholder": "Search...",
     "loading": "Loading...",
@@ -29,7 +29,7 @@
     "goHome": "Back to home"
   },
   "pwaPrompt": {
-    "title": "Install GC app",
+    "title": "Install GC Flow app",
     "subtitle": "Add to home screen for full-screen app-like experience.",
     "closeAria": "Close install prompt",
     "installButton": "Install now",
@@ -42,7 +42,7 @@
     "iosStep2": "Tap Share",
     "iosStep3": "Select \"Add to Home Screen\".",
     "androidTitle": "Install on Android",
-    "androidReady": "Tap install to add GC directly to your home screen.",
+    "androidReady": "Tap install to add GC Flow directly to your home screen.",
     "androidManual": "Open browser menu (⋮) and choose \"Add to Home screen\" or \"Install app\"."
   },
   "shell": {
@@ -50,6 +50,7 @@
       "dashboard": "Dashboard",
       "products": "Products",
       "priceProfiles": "Price Profiles",
+      "priceProfilesShort": "Profiles",
       "newOrder": "New Order",
       "orders": "Orders",
       "customers": "Users",
@@ -60,7 +61,7 @@
     "dbNotConnectedDesc": "{message}. Check MONGODB_URI in `.env.local` or Vercel environment variables."
   },
   "dashboard": {
-    "title": "GC Sales Dashboard",
+    "title": "GC Flow Sales Dashboard",
     "subtitle": "Track revenue, profit, and order status by cost and sale profiles.",
     "totalRevenue": "Total revenue",
     "profit": "Profit: {amount}",
@@ -112,7 +113,7 @@
   },
   "products": {
     "title": "Product inventory",
-    "subtitle": "Manage products for GC sales",
+    "subtitle": "Manage products for GC Flow sales",
     "exportButton": "Export Excel",
     "addProduct": "Add product",
     "filters": {
@@ -325,7 +326,7 @@
       "printBill": "Print",
       "title": "Order details",
       "billViewTitle": "Sales invoice",
-      "billAppSubtitle": "GC order billing snapshot",
+      "billAppSubtitle": "GC Flow order billing snapshot",
       "subtitle": "Created: {createdAt}",
       "generatedAt": "Generated",
       "savePdfHint": "Use Print and choose Save as PDF",
@@ -453,10 +454,10 @@
     "mobileViewOrder": "Order",
     "mobileViewCart": "Cart",
     "mobileViewSummary": "Summary",
-    "mobileContinueToCart": "Continue to cart",
-    "mobileContinueToSummary": "Continue to summary",
-    "mobileBackToOrder": "Back to order info",
-    "mobileBackToCart": "Back to cart",
+    "mobileContinueToCart": "Go to cart",
+    "mobileContinueToSummary": "Next step",
+    "mobileBackToOrder": "Back",
+    "mobileBackToCart": "Back",
     "mobileReviewBeforeSubmit": "Ready to submit",
     "orderInfoTitle": "Order information",
     "customer": "Customer",
@@ -520,7 +521,7 @@
   },
   "loginPage": {
     "title": "Sign in",
-    "subtitle": "Enter your account information to access the GC system",
+    "subtitle": "Enter your account information to access the GC Flow system",
     "heroTitle": "Professional cha sales operation",
     "heroSubtitle": "Manage products, cost/sale profiles, and orders on one central workspace.",
     "heroStatProducts": "Core products",
@@ -651,6 +652,7 @@
       "resetPasswordAria": "Reset seller password",
       "disable": "Disable",
       "enable": "Enable",
+      "revenueInline": "Revenue: {amount} • {orders} orders",
       "top30d": "Top sellers (last 30 days)",
       "top30dItem": "{orders} orders • {amount}",
       "lastLogin": "Last login: {value}",
@@ -672,14 +674,27 @@
         },
         "charts": {
           "empty": "No data",
-          "revenueTrendTitle": "Revenue trend (6 months)",
-          "revenueTrendHint": "Monthly billed amount based on delivery records.",
+          "daily": "Daily",
+          "monthly": "Monthly",
+          "yearly": "Yearly",
+          "rangeStart": "Start date",
+          "rangeEnd": "End date",
+          "pickYear": "Select year",
+          "loadError": "Unable to load chart data. Please try again.",
+          "revenueTrendTitle": "Revenue, cost, and profit trend",
+          "revenueTrendHint": "Overview of seller revenue, cost, and realized profit by the selected period.",
           "profitTrendTitle": "Profit trend (6 months)",
           "profitTrendHint": "Monthly realized profit from seller orders.",
           "orderFlowHint": "Current order distribution by fulfillment.",
           "capitalFlowHint": "Current order distribution by capital cycle status.",
           "collectionFlowHint": "Current order distribution by collection status.",
-          "topProductsHint": "Top billed products for this seller."
+          "topProductsHint": "Top billed products for this seller.",
+          "sortByLabel": "Sort:",
+          "sortRevenue": "Revenue",
+          "sortOrders": "Orders",
+          "sortWeight": "Weight",
+          "showAllProducts": "Show all ({count})",
+          "showTopProducts": "Show top {count}"
         },
         "orderFlowTitle": "Order flow snapshot",
         "capitalFlowTitle": "Capital cycle snapshot",

@@ -98,6 +98,20 @@ export function CustomersSellersBoard({
     return t('sellers.modal.createTitle');
   }, [sellerModalMode, t]);
 
+  const sellerRevenueMap = useMemo(
+    () =>
+      new Map(
+        sellersData.sellerRevenues.map(item => [
+          item.sellerId,
+          {
+            totalSaleAmount: item.totalSaleAmount,
+            totalOrders: item.totalOrders,
+          },
+        ]),
+      ),
+    [sellersData.sellerRevenues],
+  );
+
   useEffect(() => {
     setCustomerStatusValue(customerStatus);
   }, [customerStatus]);
@@ -393,6 +407,7 @@ export function CustomersSellersBoard({
             <div className='grid gap-3'>
               {sellersData.sellers.map(seller => {
                 const isCurrent = seller.id === currentSellerId;
+                const sellerRevenue = sellerRevenueMap.get(seller.id);
                 return (
                   <article
                     key={seller.id}
@@ -425,6 +440,12 @@ export function CustomersSellersBoard({
                           <p className='mt-1 text-sm text-foreground-secondary'>{seller.email}</p>
                           <p className='mt-1 text-xs text-foreground-muted'>
                             {seller.lastLoginAt ? t('sellers.lastLogin', { value: formatDateTime(seller.lastLoginAt) }) : t('sellers.noLogin')}
+                          </p>
+                          <p className='mt-1 text-xs font-medium text-primary-500'>
+                            {t('sellers.revenueInline', {
+                              amount: formatCurrency(sellerRevenue?.totalSaleAmount ?? 0),
+                              orders: sellerRevenue?.totalOrders ?? 0,
+                            })}
                           </p>
                         </div>
                       </div>

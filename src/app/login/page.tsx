@@ -43,7 +43,7 @@ export default async function LoginPage({
               <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500 shadow-[0_8px_20px_rgba(34,197,94,0.35)]'>
                 <span className='text-xs font-bold text-white'>GC</span>
               </div>
-              <span className='text-[clamp(1.2rem,4.8vw,1.6rem)] font-bold text-foreground'>GC</span>
+              <span className='text-[clamp(1.15rem,4.4vw,1.52rem)] font-bold text-foreground'>GC Flow</span>
             </div>
 
             <h1 className='mb-1.5 text-[clamp(1.3rem,6vw,1.8rem)] font-bold leading-tight text-foreground'>{t('heroTitle')}</h1>

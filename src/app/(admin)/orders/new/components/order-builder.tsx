@@ -5,7 +5,7 @@ import type { CustomerView, PriceProfileView, ProductView } from '@/types';
 import { Segmented, Select } from 'antd';
 import { AlertTriangle, BadgePercent, CalendarClock, ChevronLeft, ChevronRight, Plus, Tags, Trash2, User } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useFormStatus } from 'react-dom';
 import { createOrderAction } from '../../actions';
 
@@ -90,10 +90,7 @@ export function OrderBuilder({
   const [requestedDiscountPercent, setRequestedDiscountPercent] = useState(0);
   const [discountReason, setDiscountReason] = useState('');
   const [mobileComposerView, setMobileComposerView] = useState<MobileComposerView>('ORDER');
-  const [isMobileComposerPinned, setIsMobileComposerPinned] = useState(false);
   const [mobileBottomNavHeight, setMobileBottomNavHeight] = useState(64);
-  const mobileComposerRef = useRef<HTMLElement | null>(null);
-  const mobileComposerSentinelRef = useRef<HTMLDivElement | null>(null);
 
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
   const [isCreatingCustomer, setIsCreatingCustomer] = useState(false);
@@ -246,48 +243,6 @@ export function OrderBuilder({
   );
 
   useEffect(() => {
-    const handleStickyState = () => {
-      const node = mobileComposerRef.current;
-      const sentinel = mobileComposerSentinelRef.current;
-      if (!node || !sentinel) {
-        return;
-      }
-
-      if (window.innerWidth >= 768) {
-        setIsMobileComposerPinned(false);
-        return;
-      }
-
-      const scrollContainer = node.closest('main');
-      const containerTop = scrollContainer ? scrollContainer.getBoundingClientRect().top : 0;
-      const stickyTop = Number.parseFloat(window.getComputedStyle(node).top || '0');
-      const pinThreshold = containerTop + stickyTop + 0.5;
-      const pinned = sentinel.getBoundingClientRect().top <= pinThreshold;
-      setIsMobileComposerPinned(previous => (previous === pinned ? previous : pinned));
-    };
-
-    const node = mobileComposerRef.current;
-    const scrollContainer = node?.closest('main');
-
-    handleStickyState();
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleStickyState, { passive: true });
-    } else {
-      window.addEventListener('scroll', handleStickyState, { passive: true });
-    }
-    window.addEventListener('resize', handleStickyState);
-
-    return () => {
-      if (scrollContainer) {
-        scrollContainer.removeEventListener('scroll', handleStickyState);
-      } else {
-        window.removeEventListener('scroll', handleStickyState);
-      }
-      window.removeEventListener('resize', handleStickyState);
-    };
-  }, []);
-
-  useEffect(() => {
     const updateMobileBottomNavHeight = () => {
       const nav = document.getElementById('mobile-bottom-nav');
       const nextHeight = nav?.offsetHeight ?? 64;
@@ -404,7 +359,7 @@ export function OrderBuilder({
       <input type='hidden' name='requestedDiscountPercent' value={hasDiscountRequest ? normalizedDiscountPercent : 0} />
       <input type='hidden' name='discountReason' value={hasDiscountRequest ? discountReason : ''} />
 
-      <section className='sticky -bottom-20 z-30 hidden rounded-xl border border-border bg-background-secondary p-4 shadow-[0_12px_20px_rgba(0,0,0,0.18)] md:block'>
+      <section className='sticky top-0 z-30 hidden rounded-xl border border-border bg-background-secondary p-4 shadow-[0_12px_20px_rgba(0,0,0,0.18)] md:block'>
         <div className='flex flex-wrap items-center justify-between gap-3'>
           <div>
             <p className='m-0 text-sm font-semibold text-foreground'>{t('readyTitle')}</p>
@@ -423,11 +378,7 @@ export function OrderBuilder({
         ) : null}
       </section>
 
-      <div ref={mobileComposerSentinelRef} className='h-px md:hidden' aria-hidden />
-
-      <section
-        ref={mobileComposerRef}
-        className={`sticky -top-4 z-30 rounded-xl border border-border bg-background-secondary p-3 shadow-[0_10px_18px_rgba(0,0,0,0.18)] md:hidden ${isMobileComposerPinned ? '-mx-5 rounded-t-none' : ''}`}>
+      <section className='sticky top-0 z-30 rounded-xl border border-border bg-background-secondary p-3 shadow-[0_10px_18px_rgba(0,0,0,0.18)] md:hidden'>
         <div className='mb-2 flex items-start justify-between gap-2'>
           <div>
             <p className='m-0 text-sm font-semibold text-foreground'>{t('mobileComposerTitle')}</p>

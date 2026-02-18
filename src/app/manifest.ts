@@ -3,9 +3,9 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "GC Admin",
-    short_name: "GC",
-    description: "GC admin app for managing products, price profiles, and orders",
+    name: "GC Flow",
+    short_name: "GC Flow",
+    description: "GC Flow app for managing products, price profiles, and orders",
     start_url: "/",
     scope: "/",
     display: "standalone",

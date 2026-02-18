@@ -21,7 +21,7 @@ export function AdminLayoutShell({ children, dbError, currentSeller }: AdminLayo
       <div className='flex flex-1 flex-col overflow-hidden'>
         <AppHeader currentSeller={currentSeller} />
 
-        <main className='flex-1 overflow-auto bg-background p-4 pb-16 md:p-6 md:pb-6'>
+        <main className='flex-1 overflow-y-auto overflow-x-hidden bg-background p-4 pb-16 md:p-6 md:pb-6'>
           {dbError ? (
             <div className='mb-4 rounded-lg border border-amber-600/40 bg-amber-500/10 p-3 text-sm text-amber-200'>
               <p className='font-medium'>{tShell('dbNotConnectedTitle')}</p>

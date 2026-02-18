@@ -1,12 +1,14 @@
-import { InsightDonutChartCard, InsightHorizontalBarsCard, InsightLineChartCard } from '@/app/(admin)/components/insight-charts';
+import { InsightDonutChartCard } from '@/app/(admin)/components/insight-charts';
 import { requireAuthSession } from 'lib/auth';
-import { getSellerDetailsPageData } from 'lib/data';
+import { getSellerDetailsPageData, getSellerTrendChartData } from 'lib/data';
 import { formatCurrency, formatDate, formatDateTime, formatKg } from 'lib/format';
-import { ArrowLeft, BarChart3, Boxes, CheckCircle2, ClipboardList, Clock3, Coins, Shield, ShoppingCart, Truck, Wallet } from 'lucide-react';
+import { ArrowLeft, BarChart3, ClipboardList, Coins, Shield, ShoppingCart, Wallet } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { SellerMetricCard } from './components/seller-metric-card';
+import { SellerTopProductsCard } from './components/seller-top-products-card';
+import { SellerTrendSection } from './components/seller-trend-section';
 
 export default async function SellerDetailsPage({ params }: { params: Promise<{ sellerId: string }> | { sellerId: string } }) {
   const { sellerId } = await params;
@@ -16,22 +18,18 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
     redirect('/dashboard');
   }
 
-  const [t, tStatuses, details] = await Promise.all([getTranslations('customersPage'), getTranslations('statuses'), getSellerDetailsPageData(sellerId)]);
+  const [t, tStatuses, details, initialTrendData] = await Promise.all([
+    getTranslations('customersPage'),
+    getTranslations('statuses'),
+    getSellerDetailsPageData(sellerId),
+    getSellerTrendChartData(sellerId, { granularity: 'DAILY' }),
+  ]);
 
   if (!details.seller) {
     notFound();
   }
 
-  const { seller, stats, monthlyPerformance, topProducts, recentOrders, activeSaleProfiles, latestSaleProfiles } = details;
-  const productChartPalette = ['#22c55e', '#0ea5e9', '#f59e0b', '#a855f7', '#ef4444', '#14b8a6'];
-  const monthlyRevenueTrend = monthlyPerformance.map(point => ({
-    label: `${String(point.month).padStart(2, '0')}/${point.year}`,
-    value: point.totalSaleAmount,
-  }));
-  const monthlyProfitTrend = monthlyPerformance.map(point => ({
-    label: `${String(point.month).padStart(2, '0')}/${point.year}`,
-    value: point.totalProfitAmount,
-  }));
+  const { seller, stats, topProducts, recentOrders, activeSaleProfiles, latestSaleProfiles } = details;
   const orderFlowBreakdown = [
     {
       label: tStatuses('fulfillment.PENDING_APPROVAL'),
@@ -93,12 +91,6 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
       color: '#ef4444',
     },
   ];
-  const topProductsBars = topProducts.slice(0, 6).map((product, index) => ({
-    label: product.productName,
-    value: product.totalSaleAmount,
-    color: productChartPalette[index % productChartPalette.length]!,
-  }));
-
   return (
     <div className='space-y-5'>
       <section className='rounded-2xl border border-primary-500/25 bg-[linear-gradient(135deg,rgba(34,197,94,0.16),rgba(15,23,42,0.15)_45%,rgba(10,10,10,1)_100%)] p-5'>
@@ -166,26 +158,7 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
         />
       </section>
 
-      <section className='grid gap-4 xl:grid-cols-2'>
-        <InsightLineChartCard
-          title={t('sellers.details.charts.revenueTrendTitle')}
-          subtitle={t('sellers.details.charts.revenueTrendHint')}
-          data={monthlyRevenueTrend}
-          color='#22c55e'
-          valueFormatter={formatCurrency}
-          emptyLabel={t('sellers.details.charts.empty')}
-        />
-        <InsightLineChartCard
-          title={t('sellers.details.charts.profitTrendTitle')}
-          subtitle={t('sellers.details.charts.profitTrendHint')}
-          data={monthlyProfitTrend}
-          color='#38bdf8'
-          valueFormatter={formatCurrency}
-          emptyLabel={t('sellers.details.charts.empty')}
-        />
-      </section>
-
-      <section className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
+      <section className='grid gap-4 xl:grid-cols-3'>
         <InsightDonutChartCard
           title={t('sellers.details.orderFlowTitle')}
           subtitle={t('sellers.details.charts.orderFlowHint')}
@@ -207,37 +180,14 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
           valueFormatter={value => value.toLocaleString('en-US')}
           emptyLabel={t('sellers.details.charts.empty')}
         />
-        <InsightHorizontalBarsCard
-          title={t('sellers.details.topProductsTitle')}
-          subtitle={t('sellers.details.charts.topProductsHint')}
-          data={topProductsBars}
-          valueFormatter={formatCurrency}
-          emptyLabel={t('sellers.details.charts.empty')}
-        />
       </section>
 
-      <section className='grid gap-4 xl:grid-cols-2'>
-        <article className='rounded-xl border border-border bg-background-secondary p-4'>
-          <h3 className='m-0 mb-3 text-sm font-semibold text-foreground'>{t('sellers.details.topProductsTitle')}</h3>
-          {!topProducts.length ? (
-            <p className='m-0 text-sm text-foreground-secondary'>{t('sellers.details.emptyProducts')}</p>
-          ) : (
-            <div className='space-y-2'>
-              {topProducts.map(product => (
-                <div key={product.productId} className='rounded-lg border border-border bg-background-tertiary px-3 py-2'>
-                  <p className='m-0 text-sm font-medium text-foreground'>{product.productName}</p>
-                  <div className='mt-1 flex flex-wrap gap-3 text-xs text-foreground-secondary'>
-                    <span>{t('sellers.details.orders', { count: product.orderCount })}</span>
-                    <span>{formatKg(product.totalWeightKg)}</span>
-                    <span>{formatCurrency(product.totalSaleAmount)}</span>
-                    <span className='text-emerald-300'>{formatCurrency(product.totalProfitAmount)}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </article>
+      <section className='grid items-stretch gap-4 xl:grid-cols-3'>
+        <SellerTrendSection sellerId={seller.id} initialData={initialTrendData} className='xl:h-[24rem]' />
+        <SellerTopProductsCard products={topProducts} className='xl:col-span-1 xl:h-[24rem]' />
+      </section>
 
+      <section className='grid gap-4'>
         <article className='rounded-xl border border-border bg-background-secondary p-4'>
           <h3 className='m-0 mb-3 text-sm font-semibold text-foreground'>{t('sellers.details.saleProfilesTitle')}</h3>
           {!activeSaleProfiles.length && !latestSaleProfiles.length ? (
@@ -296,53 +246,39 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
         {!recentOrders.length ? (
           <p className='m-0 text-sm text-foreground-secondary'>{t('sellers.details.emptyOrders')}</p>
         ) : (
-          <div className='space-y-2'>
+          <div className='overflow-hidden rounded-xl border border-border bg-background-tertiary/40'>
             {recentOrders.map(order => (
-              <article key={order.id} className='rounded-lg border border-border bg-background-tertiary px-3 py-2'>
-                <div className='flex flex-wrap items-start justify-between gap-2'>
-                  <div>
-                    <p className='m-0 text-sm font-semibold text-foreground'>
-                      {order.code} • {order.customerName}
-                    </p>
-                    <p className='m-0 mt-1 text-xs text-foreground-secondary'>
-                      {formatDate(order.deliveryDate)} • {formatKg(order.totalWeightKg)} • {formatCurrency(order.totalSaleAmount)}
-                    </p>
-                  </div>
-
-                  <div className='flex flex-wrap gap-1 text-[11px]'>
-                    <span className='rounded-full border border-sky-500/30 bg-sky-500/10 px-2 py-0.5 text-sky-200'>
-                      {tStatuses(`fulfillment.${order.fulfillmentStatus}`)}
-                    </span>
-                    <span className='rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-amber-200'>
-                      {tStatuses(`supplierPayment.${order.supplierPaymentStatus}`)}
-                    </span>
-                    <span className='rounded-full border border-zinc-500/30 bg-zinc-500/10 px-2 py-0.5 text-zinc-200'>
-                      {tStatuses(`collection.${order.collectionStatus}`)}
-                    </span>
-                  </div>
+              <article key={order.id} className='border-b border-border px-3 py-2 last:border-b-0'>
+                <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs'>
+                  <span className='rounded border border-border bg-background-secondary px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground'>
+                    {order.code}
+                  </span>
+                  <span className='min-w-[120px] flex-1 truncate font-medium text-foreground'>{order.customerName}</span>
+                  <span className='shrink-0 text-foreground-muted'>{formatDate(order.deliveryDate)}</span>
+                  <span className='shrink-0 font-medium text-amber-200'>{formatCurrency(order.totalSaleAmount)}</span>
+                  <span className='shrink-0 font-semibold text-emerald-300'>{formatCurrency(order.totalProfitAmount)}</span>
+                  <span className='shrink-0 text-foreground-muted'>{formatKg(order.totalWeightKg)}</span>
+                  <span className='shrink-0 text-foreground-muted'>{t('sellers.details.products', { count: order.items.length })}</span>
                 </div>
 
-                <div className='mt-2 flex flex-wrap gap-2 text-[11px] text-foreground-muted'>
-                  <span className='inline-flex items-center gap-1'>
-                    <Clock3 className='h-3.5 w-3.5' />
-                    {formatDateTime(order.createdAt)}
+                <div className='mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-[10px]'>
+                  <span className='inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-sky-200'>
+                    {tStatuses(`fulfillment.${order.fulfillmentStatus}`)}
                   </span>
-                  <span className='inline-flex items-center gap-1'>
-                    <Truck className='h-3.5 w-3.5' />
-                    {t('sellers.details.products', { count: order.items.length })}
+                  <span className='inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-amber-200'>
+                    {tStatuses(`supplierPayment.${order.supplierPaymentStatus}`)}
                   </span>
-                  <span className='inline-flex items-center gap-1'>
-                    <Boxes className='h-3.5 w-3.5' />
+                  <span className='inline-flex items-center rounded-full border border-zinc-500/30 bg-zinc-500/10 px-1.5 py-0.5 text-zinc-200'>
+                    {tStatuses(`collection.${order.collectionStatus}`)}
+                  </span>
+                  <span className='min-w-[180px] flex-1 truncate text-foreground-secondary'>
                     {order.items
-                      .slice(0, 2)
+                      .slice(0, 3)
                       .map(item => item.productName)
-                      .join(', ')}
-                    {order.items.length > 2 ? '...' : ''}
+                      .join(' • ')}
+                    {order.items.length > 3 ? '…' : ''}
                   </span>
-                  <span className='inline-flex items-center gap-1 text-emerald-300'>
-                    <CheckCircle2 className='h-3.5 w-3.5' />
-                    {formatCurrency(order.totalProfitAmount)}
-                  </span>
+                  <span className='shrink-0 text-foreground-muted'>{formatDateTime(order.createdAt)}</span>
                 </div>
               </article>
             ))}

@@ -42,12 +42,12 @@ export function MobileFlashScreen() {
         <div className="relative h-20 w-20 overflow-hidden rounded-2xl border border-white/10 bg-[#171717] shadow-2xl shadow-emerald-500/15">
           <img
             src="/apple-touch-icon.png"
-            alt="GC"
+            alt="GC Flow"
             className="h-full w-full object-cover"
           />
         </div>
         <div className="text-center">
-          <p className="m-0 text-base font-semibold tracking-[0.08em] text-white">GC</p>
+          <p className="m-0 text-base font-semibold tracking-[0.08em] text-white">GC Flow</p>
           <p className="m-0 text-xs text-white/60">Sales Operations</p>
         </div>
       </div>

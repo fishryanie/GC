@@ -15,6 +15,7 @@ export function MobileBottomNav() {
         {mobileNavigationItems.map(item => {
           const Icon = item.icon;
           const active = isPathActive(pathname, item.href);
+          const itemLabel = item.labelKey === 'priceProfiles' ? tShell('nav.priceProfilesShort') : tShell(`nav.${item.labelKey}`);
 
           return (
             <Link
@@ -24,7 +25,7 @@ export function MobileBottomNav() {
                 active ? '!bg-primary-500/10 !text-primary-500' : '!text-foreground-muted hover:!bg-background-tertiary hover:!text-foreground'
               }`}>
               <Icon className='h-5 w-5' />
-              <span className='mt-1 w-full truncate px-0.5 text-center text-[10px] font-medium leading-none'>{tShell(`nav.${item.labelKey}`)}</span>
+              <span className='mt-1 w-full truncate px-0.5 text-center text-[10px] font-medium leading-none'>{itemLabel}</span>
             </Link>
           );
         })}

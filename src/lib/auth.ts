@@ -126,14 +126,11 @@ export async function getAuthSession() {
   }).lean();
 
   if (!session) {
-    cookieStore.delete(SESSION_COOKIE_NAME);
     return null;
   }
 
   const seller = await Seller.findById(session.sellerId).lean();
   if (!seller || !seller.isEnabled) {
-    await SellerSession.deleteOne({ _id: session._id });
-    cookieStore.delete(SESSION_COOKIE_NAME);
     return null;
   }
 
@@ -166,7 +163,7 @@ export async function ensureDefaultAdminAccount() {
   await connectToDatabase();
 
   const email = normalizeEmail(process.env.ADMIN_EMAIL || 'admin@gc.vn');
-  const name = (process.env.ADMIN_NAME || 'GC Admin').trim();
+  const name = (process.env.ADMIN_NAME || 'GC Flow Admin').trim();
   const password = process.env.ADMIN_PASSWORD || 'Admin@123';
   const existingByEmail = await Seller.findOne({ email }).select('_id role isEnabled').lean();
 

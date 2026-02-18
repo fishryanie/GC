@@ -319,6 +319,7 @@ export type SellerDetailsMonthlyPoint = {
   month: number;
   orderCount: number;
   totalSaleAmount: number;
+  totalCostAmount: number;
   totalProfitAmount: number;
 };
 
@@ -339,6 +340,24 @@ export type SellerDetailsPageData = {
   recentOrders: OrderView[];
   activeSaleProfiles: PriceProfileView[];
   latestSaleProfiles: PriceProfileView[];
+};
+
+export type SellerTrendGranularity = 'DAILY' | 'MONTHLY' | 'YEARLY';
+
+export type SellerTrendChartPoint = {
+  key: string;
+  label: string;
+  revenue: number;
+  cost: number;
+  profit: number;
+};
+
+export type SellerTrendChartData = {
+  granularity: SellerTrendGranularity;
+  points: SellerTrendChartPoint[];
+  appliedStartDate?: string;
+  appliedEndDate?: string;
+  appliedYear?: number;
 };
 
 export type CustomerDetailsStats = {
@@ -448,6 +467,7 @@ export type SellersPageData = {
   enabledCount: number;
   disabledCount: number;
   topSellers30d: SellerPerformanceView[];
+  sellerRevenues: SellerPerformanceView[];
 };
 
 export type DefaultSalePriceMap = Record<string, number>;
@@ -828,6 +848,7 @@ const DEFAULT_SELLERS_PAGE_DATA: SellersPageData = {
   enabledCount: 0,
   disabledCount: 0,
   topSellers30d: [],
+  sellerRevenues: [],
 };
 
 export async function getSellersPageData(filters?: SellerFilters) {
@@ -862,6 +883,52 @@ export async function getSellersPageData(filters?: SellerFilters) {
       ]),
     ]);
 
+    const sellerIdList = sellers.map(item => new Types.ObjectId(String(item._id)));
+    const sellerRevenueRaw = sellerIdList.length
+      ? await Order.aggregate([
+          {
+            $match: {
+              sellerId: { $in: sellerIdList },
+            },
+          },
+          {
+            $group: {
+              _id: '$sellerId',
+              totalOrders: { $sum: 1 },
+              totalSaleAmount: { $sum: '$totalSaleAmount' },
+            },
+          },
+        ])
+      : [];
+
+    const sellerRevenueMap = new Map(
+      sellerRevenueRaw.map(item => [
+        String(item._id),
+        {
+          totalOrders: Number(item.totalOrders || 0),
+          totalSaleAmount: Number(item.totalSaleAmount || 0),
+        },
+      ]),
+    );
+
+    const sellerRevenues = sellers
+      .map(item => {
+        const revenue = sellerRevenueMap.get(String(item._id));
+        return {
+          sellerId: String(item._id),
+          sellerName: item.name,
+          totalOrders: revenue?.totalOrders ?? 0,
+          totalSaleAmount: revenue?.totalSaleAmount ?? 0,
+        } satisfies SellerPerformanceView;
+      })
+      .sort((left, right) => {
+        if (right.totalSaleAmount !== left.totalSaleAmount) {
+          return right.totalSaleAmount - left.totalSaleAmount;
+        }
+
+        return right.totalOrders - left.totalOrders;
+      });
+
     return {
       sellers: sellers.map(toSellerView),
       filteredCount,
@@ -876,6 +943,7 @@ export async function getSellersPageData(filters?: SellerFilters) {
         totalOrders: Number(item.totalOrders || 0),
         totalSaleAmount: Number(item.totalSaleAmount || 0),
       })),
+      sellerRevenues,
     } satisfies SellersPageData;
   });
 }
@@ -992,6 +1060,275 @@ const DEFAULT_SELLER_DETAILS_PAGE_DATA: SellerDetailsPageData = {
   latestSaleProfiles: [],
 };
 
+const DEFAULT_SELLER_TREND_CHART_DATA: SellerTrendChartData = {
+  granularity: 'DAILY',
+  points: [],
+};
+
+function toStartOfDay(value: Date) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function toEndOfDay(value: Date) {
+  const date = new Date(value);
+  date.setHours(23, 59, 59, 999);
+  return date;
+}
+
+function parseOptionalDate(value?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
+
+function padDatePart(value: number) {
+  return String(value).padStart(2, '0');
+}
+
+type TrendAggregateRow = {
+  _id?: {
+    year?: number;
+    month?: number;
+    day?: number;
+  };
+  revenue?: number;
+  cost?: number;
+  profit?: number;
+};
+
+export async function getSellerTrendChartData(
+  sellerId: string,
+  options?: {
+    granularity?: SellerTrendGranularity;
+    startDate?: string;
+    endDate?: string;
+    year?: number;
+  },
+): Promise<SellerTrendChartData> {
+  const requestedGranularity = options?.granularity ?? 'DAILY';
+
+  return runDataQuery('getSellerTrendChartData', { ...DEFAULT_SELLER_TREND_CHART_DATA, granularity: requestedGranularity }, async () => {
+    if (!Types.ObjectId.isValid(sellerId)) {
+      return { ...DEFAULT_SELLER_TREND_CHART_DATA, granularity: requestedGranularity };
+    }
+
+    const sellerObjectId = new Types.ObjectId(sellerId);
+    const now = new Date();
+
+    if (requestedGranularity === 'DAILY') {
+      const defaultStart = toStartOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
+      const defaultEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+
+      const parsedStart = parseOptionalDate(options?.startDate);
+      const parsedEnd = parseOptionalDate(options?.endDate);
+      const rangeStart = parsedStart ? toStartOfDay(parsedStart) : defaultStart;
+      const rangeEnd = parsedEnd ? toEndOfDay(parsedEnd) : defaultEnd;
+      const isRangeValid = rangeStart.getTime() <= rangeEnd.getTime();
+      const appliedStart = isRangeValid ? rangeStart : defaultStart;
+      const appliedEnd = isRangeValid ? rangeEnd : defaultEnd;
+
+      const rows = await Order.aggregate([
+        {
+          $match: {
+            sellerId: sellerObjectId,
+            deliveryDate: {
+              $gte: appliedStart,
+              $lte: appliedEnd,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$deliveryDate' },
+              month: { $month: '$deliveryDate' },
+              day: { $dayOfMonth: '$deliveryDate' },
+            },
+            revenue: { $sum: '$totalSaleAmount' },
+            cost: { $sum: '$totalCostAmount' },
+            profit: { $sum: '$totalProfitAmount' },
+          },
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
+      ]);
+
+      const bucketMap = new Map<string, { revenue: number; cost: number; profit: number }>(
+        (rows as TrendAggregateRow[]).map(row => {
+          const year = Number(row._id?.year || 0);
+          const month = Number(row._id?.month || 0);
+          const day = Number(row._id?.day || 0);
+          const key = `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+
+          return [
+            key,
+            {
+              revenue: Number(row.revenue || 0),
+              cost: Number(row.cost || 0),
+              profit: Number(row.profit || 0),
+            },
+          ];
+        }),
+      );
+
+      const points: SellerTrendChartPoint[] = [];
+      const cursor = new Date(appliedStart);
+
+      while (cursor.getTime() <= appliedEnd.getTime()) {
+        const year = cursor.getFullYear();
+        const month = cursor.getMonth() + 1;
+        const day = cursor.getDate();
+        const key = `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+        const totals = bucketMap.get(key) ?? { revenue: 0, cost: 0, profit: 0 };
+
+        points.push({
+          key,
+          label: `${padDatePart(day)}/${padDatePart(month)}`,
+          revenue: totals.revenue,
+          cost: totals.cost,
+          profit: totals.profit,
+        });
+
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      return {
+        granularity: 'DAILY',
+        points,
+        appliedStartDate: appliedStart.toISOString(),
+        appliedEndDate: appliedEnd.toISOString(),
+      } satisfies SellerTrendChartData;
+    }
+
+    if (requestedGranularity === 'MONTHLY') {
+      const currentYear = now.getFullYear();
+      const parsedYear = Number(options?.year);
+      const appliedYear = Number.isFinite(parsedYear) ? Math.floor(parsedYear) : currentYear;
+      const yearStart = toStartOfDay(new Date(appliedYear, 0, 1));
+      const yearEnd = toEndOfDay(new Date(appliedYear, 11, 31));
+
+      const rows = await Order.aggregate([
+        {
+          $match: {
+            sellerId: sellerObjectId,
+            deliveryDate: {
+              $gte: yearStart,
+              $lte: yearEnd,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              month: { $month: '$deliveryDate' },
+            },
+            revenue: { $sum: '$totalSaleAmount' },
+            cost: { $sum: '$totalCostAmount' },
+            profit: { $sum: '$totalProfitAmount' },
+          },
+        },
+        { $sort: { '_id.month': 1 } },
+      ]);
+
+      const bucketMap = new Map<number, { revenue: number; cost: number; profit: number }>(
+        (rows as TrendAggregateRow[]).map(row => [
+          Number(row._id?.month || 0),
+          {
+            revenue: Number(row.revenue || 0),
+            cost: Number(row.cost || 0),
+            profit: Number(row.profit || 0),
+          },
+        ]),
+      );
+
+      const points = Array.from({ length: 12 }, (_, index) => {
+        const month = index + 1;
+        const totals = bucketMap.get(month) ?? { revenue: 0, cost: 0, profit: 0 };
+        return {
+          key: `${appliedYear}-${padDatePart(month)}`,
+          label: `${padDatePart(month)}/${appliedYear}`,
+          revenue: totals.revenue,
+          cost: totals.cost,
+          profit: totals.profit,
+        } satisfies SellerTrendChartPoint;
+      });
+
+      return {
+        granularity: 'MONTHLY',
+        points,
+        appliedYear,
+      } satisfies SellerTrendChartData;
+    }
+
+    const currentYear = now.getFullYear();
+    const startYear = currentYear - 5;
+    const endYear = currentYear + 4;
+    const windowStart = toStartOfDay(new Date(startYear, 0, 1));
+    const windowEnd = toEndOfDay(new Date(endYear, 11, 31));
+
+    const rows = await Order.aggregate([
+      {
+        $match: {
+          sellerId: sellerObjectId,
+          deliveryDate: {
+            $gte: windowStart,
+            $lte: windowEnd,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$deliveryDate' },
+          },
+          revenue: { $sum: '$totalSaleAmount' },
+          cost: { $sum: '$totalCostAmount' },
+          profit: { $sum: '$totalProfitAmount' },
+        },
+      },
+      { $sort: { '_id.year': 1 } },
+    ]);
+
+    const bucketMap = new Map<number, { revenue: number; cost: number; profit: number }>(
+      (rows as TrendAggregateRow[]).map(row => [
+        Number(row._id?.year || 0),
+        {
+          revenue: Number(row.revenue || 0),
+          cost: Number(row.cost || 0),
+          profit: Number(row.profit || 0),
+        },
+      ]),
+    );
+
+    const points = Array.from({ length: 10 }, (_, index) => {
+      const year = startYear + index;
+      const totals = bucketMap.get(year) ?? { revenue: 0, cost: 0, profit: 0 };
+      return {
+        key: String(year),
+        label: String(year),
+        revenue: totals.revenue,
+        cost: totals.cost,
+        profit: totals.profit,
+      } satisfies SellerTrendChartPoint;
+    });
+
+    return {
+      granularity: 'YEARLY',
+      points,
+      appliedStartDate: windowStart.toISOString(),
+      appliedEndDate: windowEnd.toISOString(),
+    } satisfies SellerTrendChartData;
+  });
+}
+
 const DEFAULT_CUSTOMER_DETAILS_STATS: CustomerDetailsStats = {
   totalOrders: 0,
   totalSpentAmount: 0,
@@ -1084,7 +1421,7 @@ export async function getSellerPerformanceOverview() {
   });
 }
 
-export async function getSellerDetailsPageData(sellerId: string) {
+export async function getSellerDetailsPageData(sellerId: string): Promise<SellerDetailsPageData> {
   return runDataQuery('getSellerDetailsPageData', DEFAULT_SELLER_DETAILS_PAGE_DATA, async () => {
     if (!Types.ObjectId.isValid(sellerId)) {
       return DEFAULT_SELLER_DETAILS_PAGE_DATA;
@@ -1204,6 +1541,7 @@ export async function getSellerDetailsPageData(sellerId: string) {
             },
             orderCount: { $sum: 1 },
             totalSaleAmount: { $sum: '$totalSaleAmount' },
+            totalCostAmount: { $sum: '$totalCostAmount' },
             totalProfitAmount: { $sum: '$totalProfitAmount' },
           },
         },
@@ -1308,7 +1646,7 @@ export async function getSellerDetailsPageData(sellerId: string) {
       daysActiveWithOrders,
     };
 
-    const monthlyMap = new Map<string, { orderCount: number; totalSaleAmount: number; totalProfitAmount: number }>(
+    const monthlyMap = new Map<string, { orderCount: number; totalSaleAmount: number; totalCostAmount: number; totalProfitAmount: number }>(
       monthlyRaw.map(item => {
         const year = Number(item?._id?.year || 0);
         const month = Number(item?._id?.month || 0);
@@ -1317,6 +1655,7 @@ export async function getSellerDetailsPageData(sellerId: string) {
           {
             orderCount: Number(item?.orderCount || 0),
             totalSaleAmount: Number(item?.totalSaleAmount || 0),
+            totalCostAmount: Number(item?.totalCostAmount || 0),
             totalProfitAmount: Number(item?.totalProfitAmount || 0),
           },
         ];
@@ -1335,6 +1674,7 @@ export async function getSellerDetailsPageData(sellerId: string) {
         month,
         orderCount: bucket?.orderCount ?? 0,
         totalSaleAmount: bucket?.totalSaleAmount ?? 0,
+        totalCostAmount: bucket?.totalCostAmount ?? 0,
         totalProfitAmount: bucket?.totalProfitAmount ?? 0,
       };
     });

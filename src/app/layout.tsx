@@ -23,23 +23,28 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'GC',
-  description: 'GC admin app for managing products, price profiles, and orders',
-  applicationName: 'GC',
+  title: 'GC Flow',
+  description: 'GC Flow app for managing products, price profiles, and orders',
+  applicationName: 'GC Flow',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'GC',
+    title: 'GC Flow',
     startupImage: ['/apple-touch-icon.png'],
   },
   formatDetection: {
     telephone: false,
   },
   icons: {
-    icon: '/gc-mark.svg',
-    shortcut: '/gc-mark.svg',
-    apple: '/gc-mark.svg',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+      { url: '/gc-mark.svg', type: 'image/svg+xml', sizes: 'any' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
 };
 
