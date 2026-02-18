@@ -1,12 +1,13 @@
 import { InsightDonutChartCard } from '@/app/(admin)/components/insight-charts';
 import { requireAuthSession } from 'lib/auth';
 import { getSellerDetailsPageData, getSellerTrendChartData } from 'lib/data';
-import { formatCurrency, formatDate, formatDateTime, formatKg } from 'lib/format';
+import { formatCurrency, formatDateTime, formatKg } from 'lib/format';
 import { ArrowLeft, BarChart3, ClipboardList, Coins, Shield, ShoppingCart, Wallet } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { SellerMetricCard } from './components/seller-metric-card';
+import { SellerRecentOrdersTable } from './components/seller-recent-orders-table';
 import { SellerTopProductsCard } from './components/seller-top-products-card';
 import { SellerTrendSection } from './components/seller-trend-section';
 
@@ -246,43 +247,7 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
         {!recentOrders.length ? (
           <p className='m-0 text-sm text-foreground-secondary'>{t('sellers.details.emptyOrders')}</p>
         ) : (
-          <div className='overflow-hidden rounded-xl border border-border bg-background-tertiary/40'>
-            {recentOrders.map(order => (
-              <article key={order.id} className='border-b border-border px-3 py-2 last:border-b-0'>
-                <div className='flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs'>
-                  <span className='rounded border border-border bg-background-secondary px-1.5 py-0.5 font-mono text-[10px] font-semibold text-foreground'>
-                    {order.code}
-                  </span>
-                  <span className='min-w-[120px] flex-1 truncate font-medium text-foreground'>{order.customerName}</span>
-                  <span className='shrink-0 text-foreground-muted'>{formatDate(order.deliveryDate)}</span>
-                  <span className='shrink-0 font-medium text-amber-200'>{formatCurrency(order.totalSaleAmount)}</span>
-                  <span className='shrink-0 font-semibold text-emerald-300'>{formatCurrency(order.totalProfitAmount)}</span>
-                  <span className='shrink-0 text-foreground-muted'>{formatKg(order.totalWeightKg)}</span>
-                  <span className='shrink-0 text-foreground-muted'>{t('sellers.details.products', { count: order.items.length })}</span>
-                </div>
-
-                <div className='mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-[10px]'>
-                  <span className='inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-sky-200'>
-                    {tStatuses(`fulfillment.${order.fulfillmentStatus}`)}
-                  </span>
-                  <span className='inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-amber-200'>
-                    {tStatuses(`supplierPayment.${order.supplierPaymentStatus}`)}
-                  </span>
-                  <span className='inline-flex items-center rounded-full border border-zinc-500/30 bg-zinc-500/10 px-1.5 py-0.5 text-zinc-200'>
-                    {tStatuses(`collection.${order.collectionStatus}`)}
-                  </span>
-                  <span className='min-w-[180px] flex-1 truncate text-foreground-secondary'>
-                    {order.items
-                      .slice(0, 3)
-                      .map(item => item.productName)
-                      .join(' • ')}
-                    {order.items.length > 3 ? '…' : ''}
-                  </span>
-                  <span className='shrink-0 text-foreground-muted'>{formatDateTime(order.createdAt)}</span>
-                </div>
-              </article>
-            ))}
-          </div>
+          <SellerRecentOrdersTable orders={recentOrders} canViewCost />
         )}
       </section>
     </div>

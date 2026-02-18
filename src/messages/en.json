@@ -713,7 +713,19 @@
         "products": "{count} products",
         "recentOrdersTitle": "Recent orders from this seller",
         "viewSellerOrders": "View all seller orders",
-        "emptyOrders": "No orders from this seller yet."
+        "emptyOrders": "No orders from this seller yet.",
+        "recentTable": {
+          "invoice": "Invoice",
+          "delivery": "Delivery",
+          "weight": "weight",
+          "actions": "Actions",
+          "viewDetails": "View details",
+          "exportInvoice": "Export invoice",
+          "itemsSummary": "{count} products",
+          "itemsModalTitle": "Purchased products",
+          "itemsModalSubtitle": "Order {code} • {customer}",
+          "close": "Close"
+        }
       },
       "stats": {
         "total": "Total accounts",

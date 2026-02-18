@@ -713,7 +713,19 @@
         "products": "{count} sản phẩm",
         "recentOrdersTitle": "Đơn hàng gần nhất của seller",
         "viewSellerOrders": "Xem toàn bộ đơn của seller",
-        "emptyOrders": "Seller này chưa có đơn hàng."
+        "emptyOrders": "Seller này chưa có đơn hàng.",
+        "recentTable": {
+          "invoice": "Invoice",
+          "delivery": "Delivery",
+          "weight": "weight",
+          "actions": "Thao tác",
+          "viewDetails": "Xem chi tiết",
+          "exportInvoice": "Xuất hóa đơn",
+          "itemsSummary": "{count} sản phẩm",
+          "itemsModalTitle": "Danh sách sản phẩm đã mua",
+          "itemsModalSubtitle": "Đơn {code} • {customer}",
+          "close": "Đóng"
+        }
       },
       "stats": {
         "total": "Tổng tài khoản",
