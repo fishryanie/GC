@@ -184,7 +184,7 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
       </section>
 
       <section className='grid items-stretch gap-4 xl:grid-cols-3'>
-        <SellerTrendSection sellerId={seller.id} initialData={initialTrendData} className='xl:h-96' />
+        <SellerTrendSection sellerId={seller.id} initialData={initialTrendData} className='xl:col-span-2 xl:h-96' />
         <SellerTopProductsCard products={topProducts} className='xl:col-span-1 xl:h-96' />
       </section>
 
