@@ -718,10 +718,13 @@
           "invoice": "Invoice",
           "delivery": "Delivery",
           "weight": "weight",
+          "itemsWeight": "Items / Weight",
           "actions": "Actions",
           "viewDetails": "View details",
           "exportInvoice": "Export invoice",
           "itemsSummary": "{count} products",
+          "itemsDetailsCta": "View {count} items",
+          "summary": "Summary",
           "itemsModalTitle": "Purchased products",
           "itemsModalSubtitle": "Order {code} • {customer}",
           "close": "Close"

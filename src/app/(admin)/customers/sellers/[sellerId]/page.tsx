@@ -184,11 +184,11 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
       </section>
 
       <section className='grid items-stretch gap-4 xl:grid-cols-3'>
-        <SellerTrendSection sellerId={seller.id} initialData={initialTrendData} className='xl:h-[24rem]' />
-        <SellerTopProductsCard products={topProducts} className='xl:col-span-1 xl:h-[24rem]' />
+        <SellerTrendSection sellerId={seller.id} initialData={initialTrendData} className='xl:h-96' />
+        <SellerTopProductsCard products={topProducts} className='xl:col-span-1 xl:h-96' />
       </section>
 
-      <section className='grid gap-4'>
+      {/* <section className='grid gap-4'>
         <article className='rounded-xl border border-border bg-background-secondary p-4'>
           <h3 className='m-0 mb-3 text-sm font-semibold text-foreground'>{t('sellers.details.saleProfilesTitle')}</h3>
           {!activeSaleProfiles.length && !latestSaleProfiles.length ? (
@@ -231,7 +231,7 @@ export default async function SellerDetailsPage({ params }: { params: Promise<{ 
             </div>
           )}
         </article>
-      </section>
+      </section> */}
 
       <section className='rounded-xl border border-border bg-background-secondary p-4'>
         <div className='mb-3 flex flex-wrap items-center justify-between gap-2'>

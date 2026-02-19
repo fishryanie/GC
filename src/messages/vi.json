@@ -718,10 +718,13 @@
           "invoice": "Invoice",
           "delivery": "Delivery",
           "weight": "weight",
+          "itemsWeight": "Số món / Kg",
           "actions": "Thao tác",
           "viewDetails": "Xem chi tiết",
           "exportInvoice": "Xuất hóa đơn",
           "itemsSummary": "{count} sản phẩm",
+          "itemsDetailsCta": "Xem chi tiết {count} món",
+          "summary": "Tổng",
           "itemsModalTitle": "Danh sách sản phẩm đã mua",
           "itemsModalSubtitle": "Đơn {code} • {customer}",
           "close": "Đóng"
