@@ -139,3 +139,21 @@ export type DashboardStats = {
   unpaidOrders: number;
   uncollectedOrders: number;
 };
+
+export type CustomerOrderLinkView = {
+  id: string;
+  token: string;
+  sellerId: string;
+  sellerName: string;
+  saleProfileId: string;
+  saleProfileName: string;
+  expiresAt: string;
+  isActive: boolean;
+  isExpired: boolean;
+  usageCount: number;
+  lastUsedAt?: string;
+  createdBySellerId: string;
+  createdBySellerName: string;
+  createdAt: string;
+  updatedAt: string;
+};

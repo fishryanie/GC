@@ -26,6 +26,11 @@
       "icon": "FileText"
     },
     {
+      "href": "/order-links",
+      "labelKey": "orderLinks",
+      "icon": "QrCode"
+    },
+    {
       "href": "/customers",
       "labelKey": "customers",
       "icon": "Users"

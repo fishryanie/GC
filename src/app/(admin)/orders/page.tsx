@@ -11,7 +11,7 @@ import { COLLECTION_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATU
 import { getOrdersPageData, getOrdersTrendChartData, listSellers } from 'lib/data';
 import { formatCurrency, formatDate } from 'lib/format';
 import { resolveSearchParams } from 'lib/search-params';
-import { CheckCircle, Clock, Download, Plus, Receipt, Search, TrendingUp } from 'lucide-react';
+import { CheckCircle, Clock, Download, Link2, Plus, Receipt, Search, TrendingUp } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 
@@ -300,6 +300,12 @@ export default async function OrdersPage({
               className='inline-flex h-10 items-center gap-2 rounded-lg bg-primary-500 px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-600'>
               <Plus className='h-4 w-4' />
               {tPage('createOrderButton')}
+            </Link>
+            <Link
+              href='/order-links'
+              className='inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background-secondary px-3 text-sm font-medium text-foreground-secondary transition-colors hover:border-primary-500/40 hover:text-foreground'>
+              <Link2 className='h-4 w-4' />
+              {tPage('createOrderLinkButton')}
             </Link>
             <a
               href={exportHref}

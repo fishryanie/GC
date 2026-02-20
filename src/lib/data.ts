@@ -7,6 +7,7 @@ import type {
   SupplierPaymentStatus,
 } from 'lib/constants';
 import { connectToDatabase } from 'lib/mongodb';
+import { CustomerOrderLink } from 'models/customer-order-link';
 import { Customer } from 'models/customer';
 import { Order } from 'models/order';
 import { PriceProfile } from 'models/price-profile';
@@ -14,7 +15,7 @@ import { Product } from 'models/product';
 import { Seller } from 'models/seller';
 import { Types } from 'mongoose';
 import { unstable_noStore as noStore } from 'next/cache';
-import type { CustomerView, DashboardStats, OrderView, PriceProfileView, ProductView, SellerRole, SellerView } from 'types';
+import type { CustomerOrderLinkView, CustomerView, DashboardStats, OrderView, PriceProfileView, ProductView, SellerRole, SellerView } from 'types';
 
 function toIsoString(value: Date | string | null | undefined) {
   return new Date(value ?? Date.now()).toISOString();
@@ -246,6 +247,45 @@ function toPriceProfileView(doc: {
   };
 }
 
+function toCustomerOrderLinkView(doc: {
+  _id: unknown;
+  token: string;
+  sellerId: unknown;
+  sellerName: string;
+  saleProfile: {
+    profileId: unknown;
+    profileName: string;
+  };
+  expiresAt: Date | string;
+  isActive: boolean;
+  usageCount?: number;
+  lastUsedAt?: Date | string | null;
+  createdBySellerId: unknown;
+  createdBySellerName: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}): CustomerOrderLinkView {
+  const expiresAtIso = toIsoString(doc.expiresAt);
+
+  return {
+    id: String(doc._id),
+    token: doc.token,
+    sellerId: String(doc.sellerId),
+    sellerName: doc.sellerName,
+    saleProfileId: String(doc.saleProfile.profileId),
+    saleProfileName: doc.saleProfile.profileName,
+    expiresAt: expiresAtIso,
+    isActive: doc.isActive,
+    isExpired: new Date(expiresAtIso).getTime() <= Date.now(),
+    usageCount: Number(doc.usageCount || 0),
+    lastUsedAt: doc.lastUsedAt ? toIsoString(doc.lastUsedAt) : undefined,
+    createdBySellerId: String(doc.createdBySellerId),
+    createdBySellerName: doc.createdBySellerName,
+    createdAt: toIsoString(doc.createdAt),
+    updatedAt: toIsoString(doc.updatedAt),
+  };
+}
+
 export type OrderFilters = {
   fulfillmentStatus?: OrderFulfillmentStatus;
   supplierPaymentStatus?: SupplierPaymentStatus;
@@ -470,6 +510,23 @@ export type SellersPageData = {
   sellerRevenues: SellerPerformanceView[];
 };
 
+export type CustomerOrderLinkStatusFilter = 'ALL' | 'ACTIVE' | 'EXPIRED' | 'INACTIVE';
+
+export type CustomerOrderLinkFilters = {
+  search?: string;
+  sellerId?: string;
+  status?: CustomerOrderLinkStatusFilter;
+};
+
+export type CustomerOrderLinksPageData = {
+  links: CustomerOrderLinkView[];
+  filteredCount: number;
+  totalCount: number;
+  activeCount: number;
+  expiredCount: number;
+  inactiveCount: number;
+};
+
 export type DefaultSalePriceMap = Record<string, number>;
 
 type ListOrdersOptions = {
@@ -572,6 +629,39 @@ function buildSellersQuery(filters?: SellerFilters) {
     };
 
     query.$or = [{ name: keyword }, { email: keyword }];
+  }
+
+  return query;
+}
+
+function buildCustomerOrderLinksQuery(filters?: CustomerOrderLinkFilters) {
+  const query: Record<string, unknown> = {};
+  const now = new Date();
+
+  if (filters?.sellerId) {
+    if (!Types.ObjectId.isValid(filters.sellerId)) {
+      return { _id: { $exists: false } } satisfies Record<string, unknown>;
+    }
+
+    query.sellerId = new Types.ObjectId(filters.sellerId);
+  }
+
+  if (filters?.search?.trim()) {
+    const keyword = {
+      $regex: escapeRegex(filters.search.trim()),
+      $options: 'i',
+    };
+    query.$or = [{ token: keyword }, { sellerName: keyword }, { 'saleProfile.profileName': keyword }];
+  }
+
+  if (filters?.status === 'ACTIVE') {
+    query.isActive = true;
+    query.expiresAt = { $gt: now };
+  } else if (filters?.status === 'EXPIRED') {
+    query.expiresAt = { $lte: now };
+  } else if (filters?.status === 'INACTIVE') {
+    query.isActive = false;
+    query.expiresAt = { $gt: now };
   }
 
   return query;
@@ -945,6 +1035,59 @@ export async function getSellersPageData(filters?: SellerFilters) {
       })),
       sellerRevenues,
     } satisfies SellersPageData;
+  });
+}
+
+const DEFAULT_CUSTOMER_ORDER_LINKS_PAGE_DATA: CustomerOrderLinksPageData = {
+  links: [],
+  filteredCount: 0,
+  totalCount: 0,
+  activeCount: 0,
+  expiredCount: 0,
+  inactiveCount: 0,
+};
+
+export async function getCustomerOrderLinksPageData(filters?: CustomerOrderLinkFilters) {
+  return runDataQuery('getCustomerOrderLinksPageData', DEFAULT_CUSTOMER_ORDER_LINKS_PAGE_DATA, async () => {
+    const query = buildCustomerOrderLinksQuery(filters);
+    const now = new Date();
+    const scopeQuery: Record<string, unknown> = {};
+
+    if (filters?.sellerId) {
+      if (!Types.ObjectId.isValid(filters.sellerId)) {
+        return DEFAULT_CUSTOMER_ORDER_LINKS_PAGE_DATA;
+      }
+      scopeQuery.sellerId = new Types.ObjectId(filters.sellerId);
+    }
+
+    const [links, filteredCount, totalCount, activeCount, expiredCount, inactiveCount] = await Promise.all([
+      CustomerOrderLink.find(query).sort({ createdAt: -1 }).lean(),
+      CustomerOrderLink.countDocuments(query),
+      CustomerOrderLink.countDocuments(scopeQuery),
+      CustomerOrderLink.countDocuments({
+        ...scopeQuery,
+        isActive: true,
+        expiresAt: { $gt: now },
+      }),
+      CustomerOrderLink.countDocuments({
+        ...scopeQuery,
+        expiresAt: { $lte: now },
+      }),
+      CustomerOrderLink.countDocuments({
+        ...scopeQuery,
+        isActive: false,
+        expiresAt: { $gt: now },
+      }),
+    ]);
+
+    return {
+      links: links.map(toCustomerOrderLinkView),
+      filteredCount,
+      totalCount,
+      activeCount,
+      expiredCount,
+      inactiveCount,
+    } satisfies CustomerOrderLinksPageData;
   });
 }
 

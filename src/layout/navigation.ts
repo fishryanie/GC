@@ -1,9 +1,9 @@
-import { BarChart3, Calendar, FileText, LayoutDashboard, Lock, Package, ShoppingCart, Users, type LucideIcon } from "lucide-react";
+import { BarChart3, Calendar, FileText, LayoutDashboard, Lock, Package, QrCode, ShoppingCart, Users, type LucideIcon } from "lucide-react";
 import { appLocales } from "i18n/config";
 import menuConfig from "./menu.json";
 import type { NavigationLabelKey } from "./types";
 
-type IconName = "BarChart3" | "Calendar" | "FileText" | "LayoutDashboard" | "Lock" | "Package" | "ShoppingCart" | "Users";
+type IconName = "BarChart3" | "Calendar" | "FileText" | "LayoutDashboard" | "Lock" | "Package" | "QrCode" | "ShoppingCart" | "Users";
 
 type NavigationConfigItem = {
   href: string;
@@ -24,6 +24,7 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   LayoutDashboard,
   Lock,
   Package,
+  QrCode,
   ShoppingCart,
   Users,
 };

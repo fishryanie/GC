@@ -103,5 +103,6 @@ export function revalidateCorePaths() {
   revalidatePath('/price-profiles');
   revalidatePath('/orders');
   revalidatePath('/orders/new');
+  revalidatePath('/order-links');
   revalidatePath('/customers');
 }

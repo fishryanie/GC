@@ -11,6 +11,7 @@ export type NavigationLabelKey =
   | "priceProfiles"
   | "newOrder"
   | "orders"
+  | "orderLinks"
   | "customers"
   | "home"
   | "profileShort";
