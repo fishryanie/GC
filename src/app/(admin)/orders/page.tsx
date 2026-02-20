@@ -1,11 +1,14 @@
-import { InsightDonutChartCard, InsightHorizontalBarsCard, InsightLineChartCard } from '@/app/(admin)/components/insight-charts';
+import { InsightDonutChartCard, InsightHorizontalBarsCard } from '@/app/(admin)/components/insight-charts';
 import { reviewOrderApprovalAction } from '@/app/(admin)/orders/actions';
+import { OrdersTopProductsCard } from '@/app/(admin)/orders/components/orders-top-products-card';
+import { OrdersTrendSection } from '@/app/(admin)/orders/components/orders-trend-section';
 import { OrderStatusInlineForm } from '@/app/(admin)/orders/components/order-status-inline-form';
 import { OrdersFilters } from '@/app/(admin)/orders/components/orders-filters';
 import { OrderInvoiceModalButton } from '@/components/order-invoice-modal-button';
+import { OrderProductsModalButton } from '@/components/order-products-modal-button';
 import { requireAuthSession } from 'lib/auth';
 import { COLLECTION_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATUSES } from 'lib/constants';
-import { getOrdersPageData, listSellers } from 'lib/data';
+import { getOrdersPageData, getOrdersTrendChartData, listSellers } from 'lib/data';
 import { formatCurrency, formatDate } from 'lib/format';
 import { resolveSearchParams } from 'lib/search-params';
 import { CheckCircle, Clock, Download, Plus, Receipt, Search, TrendingUp } from 'lucide-react';
@@ -60,8 +63,15 @@ export default async function OrdersPage({
   const normalizedMonthFilter = Number.isFinite(deliveryMonthFilter) && deliveryMonthFilter >= 1 && deliveryMonthFilter <= 12 ? deliveryMonthFilter : undefined;
   const normalizedDayFilter = Number.isFinite(deliveryDayFilter) && deliveryDayFilter >= 1 && deliveryDayFilter <= 31 ? deliveryDayFilter : undefined;
   const sellerFilter = isAdmin ? sellerFilterRaw : '';
+  const chartBaseFilters = {
+    fulfillmentStatus: fulfillmentStatusFilter || undefined,
+    supplierPaymentStatus: supplierPaymentStatusFilter || undefined,
+    collectionStatus: collectionStatusFilter || undefined,
+    sellerId: sellerFilter || undefined,
+    search: searchQuery || undefined,
+  };
 
-  const [ordersPageData, sellerOptions] = await Promise.all([
+  const [ordersPageData, sellerOptions, initialOrdersTrendData] = await Promise.all([
     getOrdersPageData({
       fulfillmentStatus: fulfillmentStatusFilter || undefined,
       supplierPaymentStatus: supplierPaymentStatusFilter || undefined,
@@ -73,6 +83,10 @@ export default async function OrdersPage({
       search: searchQuery || undefined,
     }),
     isAdmin ? listSellers({ status: 'ALL' }) : Promise.resolve([]),
+    getOrdersTrendChartData({
+      filters: chartBaseFilters,
+      granularity: 'DAILY',
+    }),
   ]);
 
   const { orders, totalSaleAmount, totalProfitAmount, filteredCount, totalCount, availableYears } = ordersPageData;
@@ -113,23 +127,21 @@ export default async function OrdersPage({
   const pendingStandardOrders = pendingApprovalOrders.filter(
     order => !(order.discountRequest.status === 'PENDING' && order.discountRequest.requestedPercent > 0),
   );
-  const trendMap = new Map<string, { label: string; value: number }>();
   const sellerSalesMap = new Map<string, { label: string; value: number }>();
   const productSalesMap = new Map<string, { label: string; value: number }>();
+  const topProductsMap = new Map<
+    string,
+    {
+      productId: string;
+      productName: string;
+      orderCount: number;
+      totalWeightKg: number;
+      totalSaleAmount: number;
+      totalProfitAmount: number;
+    }
+  >();
 
   for (const order of orders) {
-    const deliveryDate = new Date(order.deliveryDate);
-    const year = deliveryDate.getFullYear();
-    const month = String(deliveryDate.getMonth() + 1).padStart(2, '0');
-    const day = String(deliveryDate.getDate()).padStart(2, '0');
-    const trendKey = `${year}-${month}-${day}`;
-    const trendBucket = trendMap.get(trendKey);
-    if (trendBucket) {
-      trendBucket.value += order.totalSaleAmount;
-    } else {
-      trendMap.set(trendKey, { label: `${day}/${month}`, value: order.totalSaleAmount });
-    }
-
     if (isAdmin) {
       const sellerKey = order.sellerId || order.sellerName || 'system';
       const sellerLabel = order.sellerName || tPage('table.systemSeller');
@@ -139,8 +151,11 @@ export default async function OrdersPage({
       } else {
         sellerSalesMap.set(sellerKey, { label: sellerLabel, value: order.totalSaleAmount });
       }
-    } else {
-      for (const item of order.items) {
+    }
+
+    const countedProducts = new Set<string>();
+    for (const item of order.items) {
+      if (!isAdmin) {
         const productBucket = productSalesMap.get(item.productId);
         if (productBucket) {
           productBucket.value += item.lineSaleTotal;
@@ -151,14 +166,32 @@ export default async function OrdersPage({
           });
         }
       }
+
+      const topProductBucket = topProductsMap.get(item.productId);
+      const shouldCountOrder = !countedProducts.has(item.productId);
+      countedProducts.add(item.productId);
+
+      if (topProductBucket) {
+        topProductBucket.totalWeightKg += item.weightKg;
+        topProductBucket.totalSaleAmount += item.lineSaleTotal;
+        topProductBucket.totalProfitAmount += item.lineProfit;
+        if (shouldCountOrder) {
+          topProductBucket.orderCount += 1;
+        }
+      } else {
+        topProductsMap.set(item.productId, {
+          productId: item.productId,
+          productName: item.productName,
+          orderCount: 1,
+          totalWeightKg: item.weightKg,
+          totalSaleAmount: item.lineSaleTotal,
+          totalProfitAmount: item.lineProfit,
+        });
+      }
     }
   }
 
   const chartPalette = ['#22c55e', '#0ea5e9', '#f59e0b', '#a855f7', '#ef4444', '#14b8a6'];
-  const deliveryTrendData = Array.from(trendMap.entries())
-    .sort(([left], [right]) => left.localeCompare(right))
-    .slice(-8)
-    .map(([, value]) => value);
   const fulfillmentBreakdownData = [
     {
       label: tPage('charts.fulfillment.pendingApproval'),
@@ -213,6 +246,23 @@ export default async function OrdersPage({
       color: '#ef4444',
     },
   ].filter(item => item.value > 0);
+  const supplierBreakdownData = [
+    {
+      label: tPage('charts.supplier.unpaid'),
+      value: orders.filter(order => order.supplierPaymentStatus === 'UNPAID_SUPPLIER').length,
+      color: '#f59e0b',
+    },
+    {
+      label: tPage('charts.supplier.paid'),
+      value: orders.filter(order => order.supplierPaymentStatus === 'SUPPLIER_PAID').length,
+      color: '#0ea5e9',
+    },
+    {
+      label: tPage('charts.supplier.completed'),
+      value: orders.filter(order => order.supplierPaymentStatus === 'CAPITAL_CYCLE_COMPLETED').length,
+      color: '#22c55e',
+    },
+  ].filter(item => item.value > 0);
   const performanceBarsData = (isAdmin ? Array.from(sellerSalesMap.values()) : Array.from(productSalesMap.values()))
     .sort((left, right) => right.value - left.value)
     .slice(0, 6)
@@ -220,6 +270,15 @@ export default async function OrdersPage({
       ...item,
       color: chartPalette[index % chartPalette.length]!,
     }));
+  const topProductsData = Array.from(topProductsMap.values()).sort((left, right) => {
+    if (right.totalSaleAmount !== left.totalSaleAmount) {
+      return right.totalSaleAmount - left.totalSaleAmount;
+    }
+    if (right.orderCount !== left.orderCount) {
+      return right.orderCount - left.orderCount;
+    }
+    return left.productName.localeCompare(right.productName);
+  });
 
   return (
     <div className='flex h-full flex-col'>
@@ -485,32 +544,38 @@ export default async function OrdersPage({
         </div>
       </div>
 
-      <section className='mb-6 grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]'>
-        <InsightLineChartCard
-          title={tPage('charts.deliveryTrendTitle')}
-          subtitle={tPage('charts.deliveryTrendHint')}
-          data={deliveryTrendData}
-          color='#22c55e'
-          valueFormatter={formatCurrency}
+      <section className='mb-6 grid items-stretch gap-4 xl:grid-cols-3'>
+        <OrdersTrendSection
+          initialData={initialOrdersTrendData}
+          filters={chartBaseFilters}
+          canViewCost={canViewCost}
+          className='xl:col-span-2 xl:h-[24rem]'
+        />
+        <OrdersTopProductsCard products={topProductsData} canViewCost={canViewCost} className='xl:col-span-1 xl:h-[24rem]' />
+      </section>
+
+      <section className='mb-6 grid gap-4 md:grid-cols-3'>
+        <InsightDonutChartCard
+          title={tPage('charts.fulfillmentTitle')}
+          subtitle={tPage('charts.fulfillmentHint')}
+          data={fulfillmentBreakdownData}
+          valueFormatter={value => value.toLocaleString('en-US')}
           emptyLabel={tPage('charts.empty')}
         />
-
-        <div className='grid gap-4 sm:grid-cols-2'>
-          <InsightDonutChartCard
-            title={tPage('charts.fulfillmentTitle')}
-            subtitle={tPage('charts.fulfillmentHint')}
-            data={fulfillmentBreakdownData}
-            valueFormatter={value => value.toLocaleString('en-US')}
-            emptyLabel={tPage('charts.empty')}
-          />
-          <InsightDonutChartCard
-            title={tPage('charts.collectionTitle')}
-            subtitle={tPage('charts.collectionHint')}
-            data={collectionBreakdownData}
-            valueFormatter={value => value.toLocaleString('en-US')}
-            emptyLabel={tPage('charts.empty')}
-          />
-        </div>
+        <InsightDonutChartCard
+          title={tPage('charts.supplierTitle')}
+          subtitle={tPage('charts.supplierHint')}
+          data={supplierBreakdownData}
+          valueFormatter={value => value.toLocaleString('en-US')}
+          emptyLabel={tPage('charts.empty')}
+        />
+        <InsightDonutChartCard
+          title={tPage('charts.collectionTitle')}
+          subtitle={tPage('charts.collectionHint')}
+          data={collectionBreakdownData}
+          valueFormatter={value => value.toLocaleString('en-US')}
+          emptyLabel={tPage('charts.empty')}
+        />
       </section>
 
       <section className='mb-6'>
@@ -634,7 +699,15 @@ export default async function OrdersPage({
                         </td>
 
                         <td className='px-3 py-2.5 text-right'>
-                          <OrderInvoiceModalButton order={order} canViewCost={canViewCost} tooltip={tPage('details.open')} />
+                          <div className='inline-flex items-center gap-1.5'>
+                            <OrderProductsModalButton
+                              order={order}
+                              canViewCost={canViewCost}
+                              tooltip={tPage('details.viewProducts')}
+                              ariaLabel={tPage('details.viewProducts')}
+                            />
+                            <OrderInvoiceModalButton order={order} canViewCost={canViewCost} tooltip={tPage('details.open')} />
+                          </div>
                         </td>
                       </tr>
                     );

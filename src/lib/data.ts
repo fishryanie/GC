@@ -971,6 +971,11 @@ const DEFAULT_ORDERS_PAGE_DATA: OrdersPageData = {
   availableYears: [],
 };
 
+const DEFAULT_ORDERS_TREND_CHART_DATA: SellerTrendChartData = {
+  granularity: 'DAILY',
+  points: [],
+};
+
 export async function getOrdersPageData(filters?: OrderFilters) {
   return runDataQuery('getOrdersPageData', DEFAULT_ORDERS_PAGE_DATA, async () => {
     const query = buildOrdersQuery(filters);
@@ -1012,6 +1017,226 @@ export async function getOrdersPageData(filters?: OrderFilters) {
       totalCount,
       availableYears: yearsAgg.map(entry => Number(entry._id)).filter(year => Number.isFinite(year)),
     } satisfies OrdersPageData;
+  });
+}
+
+export async function getOrdersTrendChartData(
+  options?: {
+    filters?: OrderFilters;
+    granularity?: SellerTrendGranularity;
+    startDate?: string;
+    endDate?: string;
+    year?: number;
+  },
+): Promise<SellerTrendChartData> {
+  const requestedGranularity = options?.granularity ?? 'DAILY';
+
+  return runDataQuery('getOrdersTrendChartData', { ...DEFAULT_ORDERS_TREND_CHART_DATA, granularity: requestedGranularity }, async () => {
+    const baseQuery = buildOrdersQuery(options?.filters);
+    const now = new Date();
+
+    if (requestedGranularity === 'DAILY') {
+      const defaultStart = toStartOfDay(new Date(now.getFullYear(), now.getMonth(), 1));
+      const defaultEnd = toEndOfDay(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+
+      const parsedStart = parseOptionalDate(options?.startDate);
+      const parsedEnd = parseOptionalDate(options?.endDate);
+      const rangeStart = parsedStart ? toStartOfDay(parsedStart) : defaultStart;
+      const rangeEnd = parsedEnd ? toEndOfDay(parsedEnd) : defaultEnd;
+      const isRangeValid = rangeStart.getTime() <= rangeEnd.getTime();
+      const appliedStart = isRangeValid ? rangeStart : defaultStart;
+      const appliedEnd = isRangeValid ? rangeEnd : defaultEnd;
+
+      const rows = await Order.aggregate([
+        {
+          $match: {
+            ...baseQuery,
+            deliveryDate: {
+              $gte: appliedStart,
+              $lte: appliedEnd,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$deliveryDate' },
+              month: { $month: '$deliveryDate' },
+              day: { $dayOfMonth: '$deliveryDate' },
+            },
+            revenue: { $sum: '$totalSaleAmount' },
+            cost: { $sum: '$totalCostAmount' },
+            profit: { $sum: '$totalProfitAmount' },
+          },
+        },
+        { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } },
+      ]);
+
+      const bucketMap = new Map<string, { revenue: number; cost: number; profit: number }>(
+        (rows as TrendAggregateRow[]).map(row => {
+          const year = Number(row._id?.year || 0);
+          const month = Number(row._id?.month || 0);
+          const day = Number(row._id?.day || 0);
+          const key = `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+
+          return [
+            key,
+            {
+              revenue: Number(row.revenue || 0),
+              cost: Number(row.cost || 0),
+              profit: Number(row.profit || 0),
+            },
+          ];
+        }),
+      );
+
+      const points: SellerTrendChartPoint[] = [];
+      const cursor = new Date(appliedStart);
+
+      while (cursor.getTime() <= appliedEnd.getTime()) {
+        const year = cursor.getFullYear();
+        const month = cursor.getMonth() + 1;
+        const day = cursor.getDate();
+        const key = `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+        const totals = bucketMap.get(key) ?? { revenue: 0, cost: 0, profit: 0 };
+
+        points.push({
+          key,
+          label: `${padDatePart(day)}/${padDatePart(month)}`,
+          revenue: totals.revenue,
+          cost: totals.cost,
+          profit: totals.profit,
+        });
+
+        cursor.setDate(cursor.getDate() + 1);
+      }
+
+      return {
+        granularity: 'DAILY',
+        points,
+        appliedStartDate: appliedStart.toISOString(),
+        appliedEndDate: appliedEnd.toISOString(),
+      } satisfies SellerTrendChartData;
+    }
+
+    if (requestedGranularity === 'MONTHLY') {
+      const currentYear = now.getFullYear();
+      const parsedYear = Number(options?.year);
+      const appliedYear = Number.isFinite(parsedYear) ? Math.floor(parsedYear) : currentYear;
+      const yearStart = toStartOfDay(new Date(appliedYear, 0, 1));
+      const yearEnd = toEndOfDay(new Date(appliedYear, 11, 31));
+
+      const rows = await Order.aggregate([
+        {
+          $match: {
+            ...baseQuery,
+            deliveryDate: {
+              $gte: yearStart,
+              $lte: yearEnd,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              month: { $month: '$deliveryDate' },
+            },
+            revenue: { $sum: '$totalSaleAmount' },
+            cost: { $sum: '$totalCostAmount' },
+            profit: { $sum: '$totalProfitAmount' },
+          },
+        },
+        { $sort: { '_id.month': 1 } },
+      ]);
+
+      const bucketMap = new Map<number, { revenue: number; cost: number; profit: number }>(
+        (rows as TrendAggregateRow[]).map(row => [
+          Number(row._id?.month || 0),
+          {
+            revenue: Number(row.revenue || 0),
+            cost: Number(row.cost || 0),
+            profit: Number(row.profit || 0),
+          },
+        ]),
+      );
+
+      const points = Array.from({ length: 12 }, (_, index) => {
+        const month = index + 1;
+        const totals = bucketMap.get(month) ?? { revenue: 0, cost: 0, profit: 0 };
+        return {
+          key: `${appliedYear}-${padDatePart(month)}`,
+          label: `${padDatePart(month)}/${appliedYear}`,
+          revenue: totals.revenue,
+          cost: totals.cost,
+          profit: totals.profit,
+        } satisfies SellerTrendChartPoint;
+      });
+
+      return {
+        granularity: 'MONTHLY',
+        points,
+        appliedYear,
+      } satisfies SellerTrendChartData;
+    }
+
+    const currentYear = now.getFullYear();
+    const startYear = currentYear - 5;
+    const endYear = currentYear + 4;
+    const windowStart = toStartOfDay(new Date(startYear, 0, 1));
+    const windowEnd = toEndOfDay(new Date(endYear, 11, 31));
+
+    const rows = await Order.aggregate([
+      {
+        $match: {
+          ...baseQuery,
+          deliveryDate: {
+            $gte: windowStart,
+            $lte: windowEnd,
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$deliveryDate' },
+          },
+          revenue: { $sum: '$totalSaleAmount' },
+          cost: { $sum: '$totalCostAmount' },
+          profit: { $sum: '$totalProfitAmount' },
+        },
+      },
+      { $sort: { '_id.year': 1 } },
+    ]);
+
+    const bucketMap = new Map<number, { revenue: number; cost: number; profit: number }>(
+      (rows as TrendAggregateRow[]).map(row => [
+        Number(row._id?.year || 0),
+        {
+          revenue: Number(row.revenue || 0),
+          cost: Number(row.cost || 0),
+          profit: Number(row.profit || 0),
+        },
+      ]),
+    );
+
+    const points = Array.from({ length: 10 }, (_, index) => {
+      const year = startYear + index;
+      const totals = bucketMap.get(year) ?? { revenue: 0, cost: 0, profit: 0 };
+      return {
+        key: String(year),
+        label: String(year),
+        revenue: totals.revenue,
+        cost: totals.cost,
+        profit: totals.profit,
+      } satisfies SellerTrendChartPoint;
+    });
+
+    return {
+      granularity: 'YEARLY',
+      points,
+      appliedStartDate: windowStart.toISOString(),
+      appliedEndDate: windowEnd.toISOString(),
+    } satisfies SellerTrendChartData;
   });
 }
 

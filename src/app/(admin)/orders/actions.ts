@@ -3,6 +3,7 @@
 import { formatMessage, generateOrderCode, getActionMessages, handleActionError, redirectWithMessage } from 'lib/action-helpers';
 import { requireAdminSession, requireAuthSession } from 'lib/auth';
 import { COLLECTION_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATUSES } from 'lib/constants';
+import { getOrdersTrendChartData, type OrderFilters, type SellerTrendGranularity } from 'lib/data';
 import { parseNumber } from 'lib/format';
 import { connectToDatabase } from 'lib/mongodb';
 import { Customer } from 'models/customer';
@@ -20,6 +21,31 @@ type OrderInputLine = {
 const ORDER_APPROVAL_DECISIONS = ['APPROVE_ORDER', 'APPROVE_WITH_DISCOUNT', 'APPROVE_WITHOUT_DISCOUNT', 'REJECT_ORDER'] as const;
 
 type OrderApprovalDecision = (typeof ORDER_APPROVAL_DECISIONS)[number];
+
+export async function getOrdersTrendChartDataAction(input: {
+  filters?: OrderFilters;
+  granularity: SellerTrendGranularity;
+  startDate?: string;
+  endDate?: string;
+  year?: number;
+}) {
+  const session = await requireAuthSession();
+  const normalizedFilters: OrderFilters = {
+    ...input.filters,
+  };
+
+  if (session.seller.role !== 'ADMIN') {
+    normalizedFilters.sellerId = session.seller.id;
+  }
+
+  return getOrdersTrendChartData({
+    filters: normalizedFilters,
+    granularity: input.granularity,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    year: input.year,
+  });
+}
 
 export async function createOrderAction(formData: FormData) {
   try {

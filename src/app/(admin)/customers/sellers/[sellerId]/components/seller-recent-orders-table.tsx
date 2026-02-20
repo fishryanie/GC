@@ -1,11 +1,9 @@
 'use client';
 
 import { OrderInvoiceModalButton } from '@/components/order-invoice-modal-button';
-import { Tooltip } from 'antd';
+import { OrderProductsModalButton } from '@/components/order-products-modal-button';
 import { formatCurrency, formatDate, formatKg } from 'lib/format';
-import { Eye, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
 import type { OrderView } from 'types';
 
 type SellerRecentOrdersTableProps = {
@@ -17,156 +15,69 @@ export function SellerRecentOrdersTable({ orders, canViewCost }: SellerRecentOrd
   const t = useTranslations('customersPage');
   const tStatuses = useTranslations('statuses');
   const tOrders = useTranslations('ordersPage');
-  const [selectedOrder, setSelectedOrder] = useState<OrderView | null>(null);
 
   return (
-    <>
-      <div className='overflow-x-auto rounded-xl border border-border'>
-        <table className='w-full min-w-[980px] border-collapse text-xs'>
-          <thead className='bg-background-tertiary/70 text-foreground-muted'>
-            <tr className='border-b border-border'>
-              <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{tOrders('table.buyer')}</th>
-              <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.delivery')}</th>
-              <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.cards.revenue')}</th>
-              <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.cards.profit')}</th>
-              <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.weight')}</th>
-              <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{tOrders('table.status')}</th>
-              <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.actions')}</th>
+    <div className='overflow-x-auto rounded-xl border border-border'>
+      <table className='w-full min-w-[980px] border-collapse text-xs'>
+        <thead className='bg-background-tertiary/70 text-foreground-muted'>
+          <tr className='border-b border-border'>
+            <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{tOrders('table.buyer')}</th>
+            <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.delivery')}</th>
+            <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.cards.revenue')}</th>
+            <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.cards.profit')}</th>
+            <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.itemsWeight')}</th>
+            <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{tOrders('table.status')}</th>
+            <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.actions')}</th>
+          </tr>
+        </thead>
+        <tbody className='bg-background-tertiary/30'>
+          {orders.map(order => (
+            <tr key={order.id} className='border-b border-border align-middle last:border-b-0 hover:bg-background-tertiary/50'>
+              <td className='min-w-[260px] align-middle px-3 py-2'>
+                <p className='m-0 truncate font-medium text-foreground'>{order.customerName || order.buyerName}</p>
+              </td>
+              <td className='whitespace-nowrap align-middle px-3 py-2 text-foreground-secondary'>{formatDate(order.deliveryDate)}</td>
+              <td className='whitespace-nowrap align-middle px-3 py-2 text-right font-medium text-amber-200'>{formatCurrency(order.totalSaleAmount)}</td>
+              <td className='whitespace-nowrap align-middle px-3 py-2 text-right font-semibold text-primary-500'>{formatCurrency(order.totalProfitAmount)}</td>
+              <td className='whitespace-nowrap align-middle px-3 py-2 text-right text-foreground-secondary'>
+                {t('sellers.details.recentTable.itemsSummary', { count: order.items.length })} • {formatKg(order.totalWeightKg)}
+              </td>
+              <td className='min-w-[250px] align-middle px-3 py-2'>
+                <div className='flex flex-wrap gap-1'>
+                  <span className='inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-200'>
+                    {tStatuses(`fulfillment.${order.fulfillmentStatus}`)}
+                  </span>
+                  <span className='inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-200'>
+                    {tStatuses(`supplierPayment.${order.supplierPaymentStatus}`)}
+                  </span>
+                  <span className='inline-flex items-center rounded-full border border-zinc-500/30 bg-zinc-500/10 px-1.5 py-0.5 text-[10px] text-zinc-200'>
+                    {tStatuses(`collection.${order.collectionStatus}`)}
+                  </span>
+                </div>
+              </td>
+              <td className='whitespace-nowrap align-middle px-3 py-2'>
+                <div className='flex items-center gap-1.5'>
+                  <span className='text-[11px] text-foreground-muted'>{t('sellers.details.recentTable.itemsSummary', { count: order.items.length })}</span>
+                  <OrderProductsModalButton
+                    order={order}
+                    canViewCost={canViewCost}
+                    tooltip={t('sellers.details.recentTable.viewDetails')}
+                    ariaLabel={t('sellers.details.recentTable.viewDetails')}
+                    compact
+                  />
+                  <OrderInvoiceModalButton
+                    order={order}
+                    canViewCost={canViewCost}
+                    tooltip={t('sellers.details.recentTable.exportInvoice')}
+                    ariaLabel={t('sellers.details.recentTable.exportInvoice')}
+                    compact
+                  />
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody className='bg-background-tertiary/30'>
-            {orders.map(order => (
-              <tr key={order.id} className='border-b border-border align-top last:border-b-0 hover:bg-background-tertiary/50'>
-                <td className='min-w-[260px] px-3 py-2'>
-                  <p className='m-0! truncate font-medium text-foreground'>{order.customerName || order.buyerName}</p>
-                </td>
-                <td className='whitespace-nowrap px-3 py-2 text-foreground-secondary'>{formatDate(order.deliveryDate)}</td>
-                <td className='whitespace-nowrap px-3 py-2 text-right font-medium text-amber-200'>{formatCurrency(order.totalSaleAmount)}</td>
-                <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-primary-500'>{formatCurrency(order.totalProfitAmount)}</td>
-                <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatKg(order.totalWeightKg)}</td>
-                <td className='min-w-[250px] px-3 py-2'>
-                  <div className='flex flex-wrap gap-1'>
-                    <span className='inline-flex items-center rounded-full border border-sky-500/30 bg-sky-500/10 px-1.5 py-0.5 text-[10px] text-sky-200'>
-                      {tStatuses(`fulfillment.${order.fulfillmentStatus}`)}
-                    </span>
-                    <span className='inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-200'>
-                      {tStatuses(`supplierPayment.${order.supplierPaymentStatus}`)}
-                    </span>
-                    <span className='inline-flex items-center rounded-full border border-zinc-500/30 bg-zinc-500/10 px-1.5 py-0.5 text-[10px] text-zinc-200'>
-                      {tStatuses(`collection.${order.collectionStatus}`)}
-                    </span>
-                  </div>
-                </td>
-                <td className='whitespace-nowrap px-3 py-2'>
-                  <div className='flex items-center gap-1'>
-                    <div className='mt-0.5 flex items-center gap-1.5 text-[11px] text-foreground-muted'>
-                      <span>{t('sellers.details.recentTable.itemsSummary', { count: order.items.length })}</span>
-                      <Tooltip title={t('sellers.details.recentTable.viewDetails')}>
-                        <button
-                          type='button'
-                          onClick={() => setSelectedOrder(order)}
-                          aria-label={t('sellers.details.recentTable.viewDetails')}
-                          className='inline-flex h-5 w-5 items-center justify-center rounded border border-border bg-background-secondary text-foreground-secondary transition-colors hover:text-foreground'>
-                          <Eye className='h-3.5 w-3.5' />
-                        </button>
-                      </Tooltip>
-                    </div>
-                    <OrderInvoiceModalButton
-                      order={order}
-                      canViewCost={canViewCost}
-                      tooltip={t('sellers.details.recentTable.exportInvoice')}
-                      ariaLabel={t('sellers.details.recentTable.exportInvoice')}
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {selectedOrder ? (
-        <div className='fixed inset-0 z-1300 flex items-center justify-center bg-black/70 p-4'>
-          <article className='w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-background-secondary shadow-2xl'>
-            <header className='flex items-start justify-between gap-3 border-b border-border bg-background-tertiary px-4 py-3'>
-              <div className='min-w-0'>
-                <h4 className='m-0 text-base font-semibold text-foreground'>{t('sellers.details.recentTable.itemsModalTitle')}</h4>
-                <p className='m-0 mt-1 text-xs text-foreground-secondary'>
-                  {t('sellers.details.recentTable.itemsModalSubtitle', {
-                    code: selectedOrder.code,
-                    customer: selectedOrder.customerName || selectedOrder.buyerName,
-                  })}
-                </p>
-              </div>
-              <button
-                type='button'
-                onClick={() => setSelectedOrder(null)}
-                className='inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background-secondary text-foreground-secondary transition-colors hover:bg-background-hover hover:text-foreground'
-                aria-label={t('sellers.details.recentTable.close')}>
-                <X className='h-4 w-4' />
-              </button>
-            </header>
-
-            <div className='max-h-[70vh] overflow-auto p-4'>
-              <div className='overflow-x-auto rounded-xl border border-border'>
-                <table className='w-full min-w-[640px] border-collapse text-xs'>
-                  <thead className='bg-background-tertiary/70 text-foreground-muted'>
-                    <tr className='border-b border-border'>
-                      <th className='px-3 py-2 text-left font-semibold uppercase tracking-[0.06em]'>{tOrders('table.products')}</th>
-                      <th className='px-3 py-2 text-right font-semibold tracking-[0.06em]'>{t('sellers.details.recentTable.weight')}</th>
-                      <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.salePerKg')}</th>
-                      <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.lineTotal')}</th>
-                      {canViewCost ? (
-                        <>
-                          <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.costPerKg')}</th>
-                          <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.cost')}</th>
-                          <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.profit')}</th>
-                        </>
-                      ) : null}
-                    </tr>
-                  </thead>
-                  <tbody className='bg-background-tertiary/30'>
-                    {selectedOrder.items.map(item => (
-                      <tr key={`${selectedOrder.id}-${item.productId}`} className='border-b border-border last:border-b-0'>
-                        <td className='px-3 py-2 text-foreground'>{item.productName}</td>
-                        <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatKg(item.weightKg)}</td>
-                        <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatCurrency(item.salePricePerKg)}</td>
-                        <td className='whitespace-nowrap px-3 py-2 text-right font-medium text-amber-200'>{formatCurrency(item.lineSaleTotal)}</td>
-                        {canViewCost ? (
-                          <>
-                            <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatCurrency(item.costPricePerKg)}</td>
-                            <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatCurrency(item.lineCostTotal)}</td>
-                            <td className='whitespace-nowrap px-3 py-2 text-right font-medium text-primary-500'>{formatCurrency(item.lineProfit)}</td>
-                          </>
-                        ) : null}
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className='bg-background-secondary/85 text-foreground'>
-                    <tr className='border-t border-border/80'>
-                      <td className='px-3 py-2 text-xs font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.summary')}</td>
-                      <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatKg(selectedOrder.totalWeightKg)}</td>
-                      <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>-</td>
-                      <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-amber-200'>{formatCurrency(selectedOrder.totalSaleAmount)}</td>
-                      {canViewCost ? (
-                        <>
-                          <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>-</td>
-                          <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-foreground-secondary'>
-                            {formatCurrency(selectedOrder.totalCostAmount)}
-                          </td>
-                          <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-primary-500'>
-                            {formatCurrency(selectedOrder.totalProfitAmount)}
-                          </td>
-                        </>
-                      ) : null}
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </article>
-        </div>
-      ) : null}
-    </>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
