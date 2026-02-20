@@ -1,8 +1,8 @@
 import { InsightDonutChartCard, InsightHorizontalBarsCard, InsightLineChartCard } from '@/app/(admin)/components/insight-charts';
 import { reviewOrderApprovalAction } from '@/app/(admin)/orders/actions';
-import { OrderDetailsModal } from '@/app/(admin)/orders/components/order-details-modal';
 import { OrderStatusInlineForm } from '@/app/(admin)/orders/components/order-status-inline-form';
 import { OrdersFilters } from '@/app/(admin)/orders/components/orders-filters';
+import { OrderInvoiceModalButton } from '@/components/order-invoice-modal-button';
 import { requireAuthSession } from 'lib/auth';
 import { COLLECTION_STATUSES, ORDER_FULFILLMENT_STATUSES, SUPPLIER_PAYMENT_STATUSES } from 'lib/constants';
 import { getOrdersPageData, listSellers } from 'lib/data';
@@ -634,7 +634,7 @@ export default async function OrdersPage({
                         </td>
 
                         <td className='px-3 py-2.5 text-right'>
-                          <OrderDetailsModal order={order} canViewCost={canViewCost} compact />
+                          <OrderInvoiceModalButton order={order} canViewCost={canViewCost} tooltip={tPage('details.open')} />
                         </td>
                       </tr>
                     );

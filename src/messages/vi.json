@@ -41,6 +41,8 @@
     "iosStep1": "Mở trang này bằng Safari.",
     "iosStep2": "Nhấn nút Share",
     "iosStep3": "Chọn \"Add to Home Screen\".",
+    "iosShareOpenedHint": "Đã mở menu Share. Chọn \"Add to Home Screen\" để hoàn tất cài đặt.",
+    "iosShareFallbackHint": "Hãy mở menu Share của Safari và chọn \"Add to Home Screen\".",
     "androidTitle": "Cài trên Android",
     "androidReady": "Nhấn cài đặt để thêm GC Flow trực tiếp ra màn hình chính.",
     "androidManual": "Mở menu trình duyệt (⋮) và chọn \"Add to Home screen\" hoặc \"Install app\"."

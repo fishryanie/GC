@@ -1,11 +1,11 @@
 'use client';
 
-import { openOrderInvoiceWindow } from '@/app/(admin)/orders/components/order-invoice-template';
+import { OrderInvoiceModalButton } from '@/components/order-invoice-modal-button';
 import { Tooltip } from 'antd';
 import { formatCurrency, formatDate, formatKg } from 'lib/format';
-import { Eye, FileText, X } from 'lucide-react';
+import { Eye, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { OrderView } from 'types';
 
 type SellerRecentOrdersTableProps = {
@@ -15,69 +15,9 @@ type SellerRecentOrdersTableProps = {
 
 export function SellerRecentOrdersTable({ orders, canViewCost }: SellerRecentOrdersTableProps) {
   const t = useTranslations('customersPage');
-  const tCommon = useTranslations('common');
   const tStatuses = useTranslations('statuses');
   const tOrders = useTranslations('ordersPage');
   const [selectedOrder, setSelectedOrder] = useState<OrderView | null>(null);
-
-  const invoiceLabels = useMemo(
-    () => ({
-      invoiceTitle: tOrders('details.billViewTitle'),
-      appName: tCommon('appName'),
-      appSubtitle: tOrders('details.billAppSubtitle'),
-      invoiceCode: tOrders('table.invoiceCode'),
-      createdAt: tOrders('table.createdLabel'),
-      deliveryDate: tOrders('table.deliveryDate'),
-      buyer: tOrders('table.buyer'),
-      product: tOrders('table.products'),
-      seller: tOrders('table.sellerColumn'),
-      saleProfile: tOrders('details.labels.saleProfile'),
-      costProfile: tOrders('details.labels.costProfile'),
-      weightKg: tOrders('details.labels.weightKg'),
-      salePerKg: tOrders('details.labels.salePerKg'),
-      lineTotal: tOrders('details.labels.lineTotal'),
-      costPerKg: tOrders('details.labels.costPerKg'),
-      costTotal: tOrders('details.labels.cost'),
-      profit: tOrders('details.labels.profit'),
-      bill: tOrders('details.labels.bill'),
-      baseSale: tOrders('details.labels.baseSale'),
-      totalCost: tOrders('details.labels.cost'),
-      totalProfit: tOrders('details.labels.profit'),
-      totalWeight: tOrders('details.labels.totalWeight'),
-      collectionStatus: tOrders('details.labels.collectionStatus'),
-      fulfillmentStatus: tOrders('details.labels.fulfillmentStatus'),
-      supplierStatus: tOrders('details.labels.supplierStatus'),
-      approvalStatus: tOrders('details.labels.approvalStatus'),
-      discountStatus: tOrders('details.labels.discountStatus'),
-      generatedAt: tOrders('details.generatedAt'),
-      savePdfHint: tOrders('details.savePdfHint'),
-      noData: tOrders('details.noData'),
-      discountRequest: tOrders('details.discountRequest'),
-      requestedAmount: tOrders('details.requestedAmount'),
-      requestedPercent: tOrders('details.requestedPercent'),
-      reason: tOrders('details.reason'),
-      systemSeller: tOrders('table.systemSeller'),
-      printButton: tOrders('details.printBill'),
-      closeButton: tOrders('details.close'),
-    }),
-    [tCommon, tOrders],
-  );
-
-  function handleExportInvoice(order: OrderView) {
-    openOrderInvoiceWindow({
-      order,
-      canViewCost,
-      labels: invoiceLabels,
-      statusLabels: {
-        fulfillment: tStatuses(`fulfillment.${order.fulfillmentStatus}`),
-        collection: tStatuses(`collection.${order.collectionStatus}`),
-        supplier: tStatuses(`supplierPayment.${order.supplierPaymentStatus}`),
-        approval: tStatuses(`approval.${order.approval.status}`),
-        discount: tStatuses(`discount.${order.discountRequest.status}`),
-      },
-      mode: 'print',
-    });
-  }
 
   return (
     <>
@@ -131,15 +71,12 @@ export function SellerRecentOrdersTable({ orders, canViewCost }: SellerRecentOrd
                         </button>
                       </Tooltip>
                     </div>
-                    <Tooltip title={t('sellers.details.recentTable.exportInvoice')}>
-                      <button
-                        type='button'
-                        onClick={() => handleExportInvoice(order)}
-                        aria-label={t('sellers.details.recentTable.exportInvoice')}
-                        className='inline-flex h-7 w-7 items-center justify-center rounded-md border border-primary-500/35 bg-primary-500/10 text-primary-200 transition-colors hover:border-primary-500/50 hover:bg-primary-500/15 hover:text-primary-100'>
-                        <FileText className='h-3.5 w-3.5' />
-                      </button>
-                    </Tooltip>
+                    <OrderInvoiceModalButton
+                      order={order}
+                      canViewCost={canViewCost}
+                      tooltip={t('sellers.details.recentTable.exportInvoice')}
+                      ariaLabel={t('sellers.details.recentTable.exportInvoice')}
+                    />
                   </div>
                 </td>
               </tr>
@@ -179,6 +116,13 @@ export function SellerRecentOrdersTable({ orders, canViewCost }: SellerRecentOrd
                       <th className='px-3 py-2 text-right font-semibold tracking-[0.06em]'>{t('sellers.details.recentTable.weight')}</th>
                       <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.salePerKg')}</th>
                       <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.lineTotal')}</th>
+                      {canViewCost ? (
+                        <>
+                          <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.costPerKg')}</th>
+                          <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.cost')}</th>
+                          <th className='px-3 py-2 text-right font-semibold uppercase tracking-[0.06em]'>{tOrders('details.labels.profit')}</th>
+                        </>
+                      ) : null}
                     </tr>
                   </thead>
                   <tbody className='bg-background-tertiary/30'>
@@ -188,15 +132,33 @@ export function SellerRecentOrdersTable({ orders, canViewCost }: SellerRecentOrd
                         <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatKg(item.weightKg)}</td>
                         <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatCurrency(item.salePricePerKg)}</td>
                         <td className='whitespace-nowrap px-3 py-2 text-right font-medium text-amber-200'>{formatCurrency(item.lineSaleTotal)}</td>
+                        {canViewCost ? (
+                          <>
+                            <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatCurrency(item.costPricePerKg)}</td>
+                            <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatCurrency(item.lineCostTotal)}</td>
+                            <td className='whitespace-nowrap px-3 py-2 text-right font-medium text-primary-500'>{formatCurrency(item.lineProfit)}</td>
+                          </>
+                        ) : null}
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot className='bg-background-tertiary/70 text-foreground'>
-                    <tr className='border-t border-border'>
+                  <tfoot className='bg-background-secondary/85 text-foreground'>
+                    <tr className='border-t border-border/80'>
                       <td className='px-3 py-2 text-xs font-semibold uppercase tracking-[0.06em]'>{t('sellers.details.recentTable.summary')}</td>
                       <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>{formatKg(selectedOrder.totalWeightKg)}</td>
                       <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>-</td>
                       <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-amber-200'>{formatCurrency(selectedOrder.totalSaleAmount)}</td>
+                      {canViewCost ? (
+                        <>
+                          <td className='whitespace-nowrap px-3 py-2 text-right text-foreground-secondary'>-</td>
+                          <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-foreground-secondary'>
+                            {formatCurrency(selectedOrder.totalCostAmount)}
+                          </td>
+                          <td className='whitespace-nowrap px-3 py-2 text-right font-semibold text-primary-500'>
+                            {formatCurrency(selectedOrder.totalProfitAmount)}
+                          </td>
+                        </>
+                      ) : null}
                     </tr>
                   </tfoot>
                 </table>

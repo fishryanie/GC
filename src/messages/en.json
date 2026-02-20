@@ -41,6 +41,8 @@
     "iosStep1": "Open this page in Safari.",
     "iosStep2": "Tap Share",
     "iosStep3": "Select \"Add to Home Screen\".",
+    "iosShareOpenedHint": "Share menu opened. Choose \"Add to Home Screen\" to finish install.",
+    "iosShareFallbackHint": "Use Safari Share and choose \"Add to Home Screen\".",
     "androidTitle": "Install on Android",
     "androidReady": "Tap install to add GC Flow directly to your home screen.",
     "androidManual": "Open browser menu (⋮) and choose \"Add to Home screen\" or \"Install app\"."

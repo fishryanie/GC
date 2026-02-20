@@ -25,7 +25,9 @@ function isIos() {
     return false;
   }
 
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const iOSByUa = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const iPadOs = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  return iOSByUa || iPadOs;
 }
 
 function isStandaloneMode() {
@@ -44,6 +46,7 @@ export function PwaMobileInstall() {
   const [installing, setInstalling] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIosDevice, setIsIosDevice] = useState(false);
+  const [manualHint, setManualHint] = useState("");
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -130,8 +133,30 @@ export function PwaMobileInstall() {
   }, [deferredPrompt, isIosDevice, t]);
 
   async function handleInstallClick() {
+    if (isIosDevice) {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        try {
+          setInstalling(true);
+          await navigator.share({
+            title: t("title"),
+            text: t("subtitle"),
+            url: window.location.href,
+          });
+          setManualHint(t("iosShareOpenedHint"));
+        } catch {
+          setManualHint(t("iosShareFallbackHint"));
+        } finally {
+          setInstalling(false);
+        }
+        return;
+      }
+
+      setManualHint(t("iosShareFallbackHint"));
+      return;
+    }
+
     if (!deferredPrompt) {
-      setIsOpen(false);
+      setManualHint(t("androidManual"));
       return;
     }
 
@@ -203,6 +228,9 @@ export function PwaMobileInstall() {
             </div>
           )}
         </div>
+        {manualHint ? (
+          <p className="m-0 mt-2 text-xs text-primary-400">{manualHint}</p>
+        ) : null}
 
         <div className="mt-3 grid grid-cols-2 gap-2">
           <button

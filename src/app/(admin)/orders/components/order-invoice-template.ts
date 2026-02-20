@@ -47,13 +47,6 @@ type OpenOrderInvoiceWindowArgs = {
   order: OrderView;
   canViewCost: boolean;
   labels: OrderInvoiceLabels;
-  statusLabels: {
-    fulfillment: string;
-    collection: string;
-    supplier: string;
-    approval: string;
-    discount: string;
-  };
   mode: InvoiceWindowMode;
 };
 
@@ -66,25 +59,17 @@ function escapeHtml(value: string) {
     .replace(/'/g, '&#39;');
 }
 
-export function openOrderInvoiceWindow({ order, canViewCost, labels, statusLabels, mode }: OpenOrderInvoiceWindowArgs) {
+export function openOrderInvoiceWindow({ order, canViewCost, labels, mode }: OpenOrderInvoiceWindowArgs) {
   const rowsHtml = order.items
     .map(item => {
-      const baseColumns = `
+      return `
+      <tr>
         <td>${escapeHtml(item.productName)}</td>
         <td>${formatKg(item.weightKg)}</td>
         <td>${formatCurrency(item.salePricePerKg)}</td>
         <td class="text-right">${formatCurrency(item.lineSaleTotal)}</td>
+      </tr>
       `;
-
-      const costColumns = canViewCost
-        ? `
-            <td>${formatCurrency(item.costPricePerKg)}</td>
-            <td>${formatCurrency(item.lineCostTotal)}</td>
-            <td class="text-right">${formatCurrency(item.lineProfit)}</td>
-          `
-        : '';
-
-      return `<tr>${baseColumns}${costColumns}</tr>`;
     })
     .join('');
 
@@ -92,7 +77,7 @@ export function openOrderInvoiceWindow({ order, canViewCost, labels, statusLabel
     order.discountRequest.status !== 'NONE'
       ? `
       <div class="note-block">
-        <p><strong>${escapeHtml(labels.discountRequest)}:</strong> ${escapeHtml(statusLabels.discount)}</p>
+        <p><strong>${escapeHtml(labels.discountRequest)}</strong></p>
         <p>${escapeHtml(labels.requestedPercent)}: ${order.discountRequest.requestedPercent.toFixed(1)}%</p>
         <p>${escapeHtml(labels.requestedAmount)}: ${formatCurrency(order.discountRequest.requestedSaleAmount)}</p>
         ${
@@ -188,29 +173,6 @@ export function openOrderInvoiceWindow({ order, canViewCost, labels, statusLabel
       margin-top: 4px;
       font-size: 13px;
       color: #4b5563;
-    }
-    .status-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-    .status-item {
-      border: 1px solid #e5e7eb;
-      border-radius: 10px;
-      padding: 8px 10px;
-      font-size: 12px;
-      line-height: 1.35;
-      background: #fafafa;
-    }
-    .status-label {
-      color: #6b7280;
-      display: block;
-      margin-bottom: 2px;
-    }
-    .status-value {
-      color: #111827;
-      font-weight: 600;
     }
     .info-grid {
       display: grid;
@@ -359,29 +321,9 @@ export function openOrderInvoiceWindow({ order, canViewCost, labels, statusLabel
       <div class="invoice-meta">
         <h2>${escapeHtml(labels.invoiceTitle)}</h2>
         <p class="invoice-code">#${escapeHtml(order.code)}</p>
-        <p class="meta-line">${escapeHtml(labels.createdAt)}: ${formatDateTime(order.createdAt)}</p>
         <p class="meta-line">${escapeHtml(labels.deliveryDate)}: ${formatDate(order.deliveryDate)}</p>
       </div>
     </header>
-
-    <section class="status-grid">
-      <div class="status-item">
-        <span class="status-label">${escapeHtml(labels.fulfillmentStatus)}</span>
-        <span class="status-value">${escapeHtml(statusLabels.fulfillment)}</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">${escapeHtml(labels.collectionStatus)}</span>
-        <span class="status-value">${escapeHtml(statusLabels.collection)}</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">${escapeHtml(labels.supplierStatus)}</span>
-        <span class="status-value">${escapeHtml(statusLabels.supplier)}</span>
-      </div>
-      <div class="status-item">
-        <span class="status-label">${escapeHtml(labels.approvalStatus)}</span>
-        <span class="status-value">${escapeHtml(statusLabels.approval)}</span>
-      </div>
-    </section>
 
     <section class="info-grid">
       <article class="info-card">
@@ -409,15 +351,6 @@ export function openOrderInvoiceWindow({ order, canViewCost, labels, statusLabel
           <th>${escapeHtml(labels.weightKg)}</th>
           <th>${escapeHtml(labels.salePerKg)}</th>
           <th class="text-right">${escapeHtml(labels.lineTotal)}</th>
-          ${
-            canViewCost
-              ? `
-                <th>${escapeHtml(labels.costPerKg)}</th>
-                <th>${escapeHtml(labels.costTotal)}</th>
-                <th class="text-right">${escapeHtml(labels.profit)}</th>
-              `
-              : ''
-          }
         </tr>
       </thead>
       <tbody>

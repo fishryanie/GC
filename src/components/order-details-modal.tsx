@@ -18,16 +18,8 @@ type OrderDetailsModalProps = {
 export function OrderDetailsModal({ order, canViewCost, compact = false, renderTrigger }: OrderDetailsModalProps) {
   const t = useTranslations('ordersPage');
   const tCommon = useTranslations('common');
-  const tStatuses = useTranslations('statuses');
   const [open, setOpen] = useState(false);
 
-  const statusLabels = {
-    fulfillment: tStatuses(`fulfillment.${order.fulfillmentStatus}`),
-    collection: tStatuses(`collection.${order.collectionStatus}`),
-    supplier: tStatuses(`supplierPayment.${order.supplierPaymentStatus}`),
-    approval: tStatuses(`approval.${order.approval.status}`),
-    discount: tStatuses(`discount.${order.discountRequest.status}`),
-  };
   const invoiceLabels = {
     invoiceTitle: t('details.billViewTitle'),
     appName: tCommon('appName'),
@@ -72,7 +64,6 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
     openOrderInvoiceWindow({
       order,
       canViewCost,
-      statusLabels,
       mode: 'preview',
       labels: invoiceLabels,
     });
@@ -82,7 +73,6 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
     openOrderInvoiceWindow({
       order,
       canViewCost,
-      statusLabels,
       mode: 'print',
       labels: invoiceLabels,
     });
@@ -156,19 +146,9 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
                     <p className='m-0 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500'>{t('details.billViewTitle')}</p>
                     <p className='m-0 mt-1 font-mono text-sm font-semibold text-emerald-700'>#{order.code}</p>
                     <p className='m-0 mt-1 text-xs text-zinc-600'>
-                      {t('table.createdLabel')}: {formatDateTime(order.createdAt)}
-                    </p>
-                    <p className='m-0 mt-0.5 text-xs text-zinc-600'>
                       {t('table.deliveryDate')}: {formatDate(order.deliveryDate)}
                     </p>
                   </div>
-                </div>
-
-                <div className='mt-4 grid gap-2 sm:grid-cols-2'>
-                  <StatusBadge label={t('details.labels.fulfillmentStatus')} value={statusLabels.fulfillment} />
-                  <StatusBadge label={t('details.labels.collectionStatus')} value={statusLabels.collection} />
-                  <StatusBadge label={t('details.labels.supplierStatus')} value={statusLabels.supplier} />
-                  <StatusBadge label={t('details.labels.approvalStatus')} value={statusLabels.approval} />
                 </div>
 
                 <div className='mt-3 grid gap-3 sm:grid-cols-2'>
@@ -186,13 +166,6 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
                         <th className='px-3 py-2 text-left text-xs font-semibold text-zinc-700'>{t('details.labels.weightKg')}</th>
                         <th className='px-3 py-2 text-left text-xs font-semibold text-zinc-700'>{t('details.labels.salePerKg')}</th>
                         <th className='px-3 py-2 text-right text-xs font-semibold text-zinc-700'>{t('details.labels.lineTotal')}</th>
-                        {canViewCost ? (
-                          <>
-                            <th className='px-3 py-2 text-left text-xs font-semibold text-zinc-700'>{t('details.labels.costPerKg')}</th>
-                            <th className='px-3 py-2 text-left text-xs font-semibold text-zinc-700'>{t('details.labels.cost')}</th>
-                            <th className='px-3 py-2 text-right text-xs font-semibold text-zinc-700'>{t('details.labels.profit')}</th>
-                          </>
-                        ) : null}
                       </tr>
                     </thead>
                     <tbody>
@@ -202,13 +175,6 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
                           <td className='px-3 py-2 text-sm text-zinc-700'>{formatKg(item.weightKg)}</td>
                           <td className='px-3 py-2 text-sm text-zinc-700'>{formatCurrency(item.salePricePerKg)}</td>
                           <td className='px-3 py-2 text-right text-sm font-medium text-zinc-900'>{formatCurrency(item.lineSaleTotal)}</td>
-                          {canViewCost ? (
-                            <>
-                              <td className='px-3 py-2 text-sm text-zinc-700'>{formatCurrency(item.costPricePerKg)}</td>
-                              <td className='px-3 py-2 text-sm text-zinc-700'>{formatCurrency(item.lineCostTotal)}</td>
-                              <td className='px-3 py-2 text-right text-sm font-medium text-emerald-700'>{formatCurrency(item.lineProfit)}</td>
-                            </>
-                          ) : null}
                         </tr>
                       ))}
                     </tbody>
@@ -230,7 +196,7 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
                 {order.discountRequest.status !== 'NONE' ? (
                   <div className='mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900'>
                     <p className='m-0'>
-                      <strong>{t('details.discountRequest')}:</strong> {statusLabels.discount}
+                      <strong>{t('details.discountRequest')}</strong>
                     </p>
                     <p className='m-0 mt-1'>
                       {t('details.requestedPercent')}: {order.discountRequest.requestedPercent.toFixed(1)}%
@@ -267,15 +233,6 @@ export function OrderDetailsModal({ order, canViewCost, compact = false, renderT
         </div>
       ) : null}
     </>
-  );
-}
-
-function StatusBadge({ label, value }: { label: string; value: string }) {
-  return (
-    <article className='rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2'>
-      <p className='m-0 text-[11px] uppercase tracking-[0.04em] text-zinc-500'>{label}</p>
-      <p className='m-0 mt-1 text-sm font-semibold text-zinc-900'>{value}</p>
-    </article>
   );
 }
 
